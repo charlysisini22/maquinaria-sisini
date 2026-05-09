@@ -616,6 +616,45 @@ textarea{resize:vertical;min-height:80px}
       </div>
     </div>
 
+    <!-- COSTO POR HECTÁREA -->
+    <div class="section" id="sec-costo-ha">
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px">Costo por hectárea</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Cruzá labores con costos para saber cuánto te cuesta cada tarea por hectárea.</div>
+
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px">Filtros</div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px">
+          <div>
+            <label class="form-label">Desde</label>
+            <input type="date" id="ha-desde">
+          </div>
+          <div>
+            <label class="form-label">Hasta</label>
+            <input type="date" id="ha-hasta">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">Tipo de labor</label>
+          <select id="ha-tipo">
+            <option value="">Todas</option>
+            <option value="Surcado">Surcado</option>
+            <option value="Rastrado">Rastrado</option>
+            <option value="Fumigación">Fumigación</option>
+            <option value="Nivelación">Nivelación</option>
+            <option value="Abonado">Abonado</option>
+            <option value="Cosecha">Cosecha</option>
+            <option value="Transporte">Transporte</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="calcularCostoHa()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Calcular
+        </button>
+      </div>
+
+      <div id="ha-resultado"></div>
+    </div>
+
     <!-- QR -->
     <div class="section" id="sec-qr">
       <div class="card">
@@ -697,6 +736,10 @@ textarea{resize:vertical;min-height:80px}
     <button onclick="showSection('vencimientos');cerrarMenu()" style="width:100%;padding:13px 1.25rem;border:none;background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2"/></svg>
       Vencimientos
+    </button>
+    <button onclick="showSection('costo-ha');cerrarMenu()" style="width:100%;padding:13px 1.25rem;border:none;background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Costo por hectárea
     </button>
   </div>
 </div>
@@ -956,7 +999,97 @@ function mostrarSetupWarning(){
   </div>`;
 }
 
-function poblarSelectVencimiento(){
+function calcularCostoHa(){
+  const desde=document.getElementById('ha-desde').value||null;
+  const hasta=document.getElementById('ha-hasta').value||null;
+  const tipoFiltro=document.getElementById('ha-tipo').value||null;
+  const cont=document.getElementById('ha-resultado');
+
+  // Filtrar labores
+  let labs=registros.filter(r=>r.tipo==='labor'&&r.has&&parseFloat(r.has)>0);
+  if(desde)labs=labs.filter(r=>r.fecha>=desde);
+  if(hasta)labs=labs.filter(r=>r.fecha<=hasta);
+  if(tipoFiltro)labs=labs.filter(r=>r.subTipo===tipoFiltro);
+
+  if(!labs.length){
+    cont.innerHTML='<div class="empty">Sin labores con hectáreas en el período seleccionado.<br>Asegurate de cargar las hectáreas en el Registro de labores.</div>';
+    return;
+  }
+
+  // Filtrar costos del mismo período
+  let costos=registros.filter(r=>r.costo&&parseFloat(r.costo)>0);
+  if(desde)costos=costos.filter(r=>r.fecha>=desde);
+  if(hasta)costos=costos.filter(r=>r.fecha<=hasta);
+
+  const totalHas=labs.reduce((a,r)=>a+(parseFloat(r.has)||0),0);
+  const totalCostos=costos.reduce((a,r)=>a+(parseFloat(r.costo)||0),0);
+  const totalCombust=registros.filter(r=>r.tipo==='combustible'&&(!desde||r.fecha>=desde)&&(!hasta||r.fecha<=hasta)).reduce((a,r)=>a+(parseFloat(r.litros)||0),0);
+
+  const costoPorHa=totalHas>0?totalCostos/totalHas:0;
+  const litrosPorHa=totalHas>0?totalCombust/totalHas:0;
+
+  // Agrupar por tipo de labor
+  const porTipo={};
+  labs.forEach(r=>{
+    if(!porTipo[r.subTipo])porTipo[r.subTipo]={has:0,count:0};
+    porTipo[r.subTipo].has+=parseFloat(r.has)||0;
+    porTipo[r.subTipo].count++;
+  });
+
+  // Agrupar por lote
+  const porLote={};
+  labs.forEach(r=>{
+    if(!porLote[r.lote])porLote[r.lote]={has:0,labores:[]};
+    porLote[r.lote].has+=parseFloat(r.has)||0;
+    porLote[r.lote].labores.push(r.subTipo);
+  });
+
+  let html=`
+  <div class="stats-grid" style="margin-bottom:12px">
+    <div class="stat"><div class="stat-label">Total hectáreas</div><div class="stat-val">${Math.round(totalHas*10)/10} ha</div></div>
+    <div class="stat"><div class="stat-label">Costo/ha</div><div class="stat-val" style="font-size:18px">${formatPesos(costoPorHa)}</div></div>
+    <div class="stat"><div class="stat-label">Costo total</div><div class="stat-val" style="font-size:18px">${formatPesos(totalCostos)}</div></div>
+    <div class="stat"><div class="stat-label">L/ha</div><div class="stat-val">${(Math.round(litrosPorHa*10)/10)}</div></div>
+  </div>`;
+
+  // Por tipo de labor
+  html+=`<div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px">Por tipo de labor</div>`;
+  Object.entries(porTipo).sort((a,b)=>b[1].has-a[1].has).forEach(([tipo,data])=>{
+    html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border)">
+      <div>
+        <div style="font-size:14px">${tipo}</div>
+        <div style="font-size:12px;color:var(--text2)">${data.count} labor${data.count>1?'es':''}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:500">${Math.round(data.has*10)/10} ha</div>
+        <div style="font-size:12px;color:var(--text2)">${Math.round(data.has/totalHas*100)}% del total</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+
+  // Por lote
+  html+=`<div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px">Por lote</div>`;
+  Object.entries(porLote).sort((a,b)=>b[1].has-a[1].has).forEach(([lote,data])=>{
+    const laboresUnicas=[...new Set(data.labores)].join(', ');
+    html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border)">
+      <div>
+        <div style="font-size:14px">${lote}</div>
+        <div style="font-size:12px;color:var(--text2)">${laboresUnicas}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:500">${Math.round(data.has*10)/10} ha</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+
+  cont.innerHTML=html;
+}
+
+
   const sel=document.getElementById('vnew-equipo');
   if(!sel)return;
   sel.innerHTML='';
@@ -2130,6 +2263,12 @@ function showSection(id,btn){
   }
   if(id==='vencimientos'){poblarSelectVencimiento();}
   if(id==='nuevo-vencimiento'){poblarSelectVencimiento();}
+  if(id==='costo-ha'){
+    const hoy=new Date().toISOString().split('T')[0];
+    const primerDiaMes=hoy.substring(0,7)+'-01';
+    document.getElementById('ha-desde').value=primerDiaMes;
+    document.getElementById('ha-hasta').value=hoy;
+  }
   document.getElementById('sec-'+id).classList.add('active');
   if(btn){document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
   if(id==='qr')renderQR();
@@ -2146,6 +2285,22 @@ function toggleTipo(){
   const t=document.getElementById('reg-tipo').value;
   const esComb=t==='combustible';
   const esRecarga=t==='recarga-cisterna';
+  const esService=t==='service'||t==='reparacion';
+  document.getElementById('campo-litros').style.display=(esComb||esRecarga)?'block':'none';
+  document.getElementById('campo-horometro').style.display=(esComb||esRecarga)?'none':'block';
+  document.getElementById('campo-costo').style.display=esRecarga?'none':'block';
+  document.getElementById('campo-equipo').style.display=esRecarga?'none':'block';
+  document.getElementById('campo-origen').style.display=esComb?'block':'none';
+  if(esRecarga){
+    document.getElementById('reg-litros').placeholder='ej: 5000';
+    document.getElementById('campo-litros').querySelector('.form-label').textContent='Litros comprados';
+  }else{
+    document.getElementById('reg-litros').placeholder='ej: 80';
+    document.getElementById('campo-litros').querySelector('.form-label').textContent='Litros cargados';
+  }
+  toggleOtro();
+  toggleHorometroLabel();
+}
   document.getElementById('campo-litros').style.display=(esComb||esRecarga)?'block':'none';
   document.getElementById('campo-horometro').style.display=esComb?'block':'none';
   document.getElementById('campo-costo').style.display=(esComb||esRecarga)?'block':'none';
