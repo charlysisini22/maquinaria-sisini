@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Maquinaria Sisini</title>
+
+<!-- ============================================================
+     PASO 1: Crear proyecto Firebase
+     1. Ir a https://console.firebase.google.com
+     2. Clic en "Crear un proyecto" → poné nombre ej: "maquinaria-sisini"
+     3. Desactivar Google Analytics (no hace falta) → Crear proyecto
+     4. Una vez creado: clic en el ícono </> (Web)
+     5. Registrar app → te da un bloque firebaseConfig
+     6. Reemplazar los valores en FIREBASE_CONFIG abajo
+     
+     PASO 2: Activar Realtime Database
+     1. En el panel izquierdo: Compilación → Realtime Database
+     2. Crear base de datos → Elegir ubicación (us-central) → Modo de prueba → Listo
+     
+     PASO 3: Subir a Netlify
+     1. Ir a https://netlify.com/drop
+     2. Arrastrar este archivo HTML
+     3. Ya tenés tu URL pública
+     ============================================================ -->
+
+<script>
+// ↓↓↓ REEMPLAZÁ ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE ↓↓↓
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAB86SRuOHdIx-34efNkH9IKrVtJ4DhiE0",
+  authDomain: "maquinaria-sisini.firebaseapp.com",
+  databaseURL: "https://maquinaria-sisini-default-rtdb.firebaseio.com",
+  projectId: "maquinaria-sisini",
+  storageBucket: "maquinaria-sisini.firebasestorage.app",
+  messagingSenderId: "159286017945",
+  appId: "1:159286017945:web:c0d3807cd44764a5a55d08"
+};
+// ↑↑↑ REEMPLAZÁ ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE ↑↑↑
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:#e5e5e0;--border2:#d0d0c8;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --red:#A32D2D;--red-bg:#FCEBEB;
+  --blue:#185FA5;--blue-bg:#E6F1FB;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2c;
+    --text:#f0efe9;--text2:#aaa;--text3:#666;
+    --border:#3a3a38;--border2:#4a4a48;
+    --green-bg:#1a2e0a;--amber-bg:#2e1f08;--red-bg:#2e0f0f;--blue-bg:#0a1e35;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.app{max-width:480px;margin:0 auto;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;position:relative}
+.header{padding:1rem 1.25rem 0.75rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10}
+.header h1{font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.dot{width:7px;height:7px;border-radius:50%;background:#E24B4A}
+.dot.online{background:#639922}
+.dot.syncing{background:#EF9F27;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.content{flex:1;padding:1rem 1.25rem;overflow-y:auto}
+.nav{display:flex;gap:0;border-top:0.5px solid var(--border);background:var(--bg);position:sticky;bottom:0}
+.nav button{flex:1;padding:10px 4px 12px;border:none;background:transparent;color:var(--text2);font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s}
+.nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav button.active{color:var(--text)}
+.nav button.active svg{stroke-width:2}
+.section{display:none}.section.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.25rem}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:.85rem 1rem}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.stat-val{font-size:24px;font-weight:600}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:10px}
+.section-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:8px;margin-top:4px}
+.eq-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:.9rem 1.1rem;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;-webkit-tap-highlight-color:transparent}
+.eq-card:active{background:var(--bg2)}
+.eq-name{font-size:15px;font-weight:500}
+.eq-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.badge{font-size:11px;padding:3px 9px;border-radius:10px;font-weight:500;white-space:nowrap}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.badge-warn{background:var(--amber-bg);color:var(--amber)}
+.badge-alert{background:var(--red-bg);color:var(--red)}
+.badge-info{background:var(--blue-bg);color:var(--blue)}
+.hist-item{padding:10px 0;border-bottom:0.5px solid var(--border)}
+.hist-item:last-child{border-bottom:none}
+.hist-date{font-size:11px;color:var(--text3);margin-bottom:2px}
+.hist-desc{font-size:14px;color:var(--text)}
+.hist-meta{font-size:12px;color:var(--text2);margin-top:1px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:13px;color:var(--text2);margin-bottom:4px;display:block}
+input,select,textarea{width:100%;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:15px;-webkit-appearance:none;appearance:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+textarea{resize:vertical;min-height:80px}
+.btn{width:100%;padding:11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;font-family:inherit}
+.btn:active{background:var(--bg2)}
+.btn-primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn-primary:active{opacity:.85}
+.btn-sm{padding:7px 14px;font-size:13px;width:auto}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text2);cursor:pointer;margin-bottom:12px;background:none;border:none;padding:0;font-family:inherit}
+.dtabs{display:flex;gap:6px;margin-bottom:12px}
+.dtab{flex:1;padding:7px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;text-align:center;font-family:inherit}
+.dtab.active{background:var(--bg2);color:var(--text);font-weight:500}
+.dtab-content{display:none}.dtab-content.active{display:block}
+.empty{text-align:center;color:var(--text3);font-size:14px;padding:2.5rem 1rem;line-height:1.6}
+.qr-wrap{display:flex;flex-direction:column;align-items:center;padding:.5rem 0 .75rem;gap:8px}
+#qr-canvas{border-radius:var(--radius);border:0.5px solid var(--border)}
+.qr-name{font-size:14px;font-weight:500;text-align:center}
+.setup-card{border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:10px;background:var(--amber-bg)}
+.setup-title{font-size:15px;font-weight:600;color:var(--amber);margin-bottom:6px}
+.setup-step{font-size:13px;color:var(--text);margin:4px 0;padding-left:4px}
+.setup-input{border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-size:13px;background:var(--bg);color:var(--text);width:100%;font-family:monospace;margin-top:4px}
+.toast{display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:20px;font-size:13px;z-index:100;white-space:nowrap}
+.loader{text-align:center;color:var(--text3);padding:1.5rem;font-size:14px}
+.fuel-total{font-size:32px;font-weight:600;text-align:center;padding:.25rem 0}
+.fuel-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:.25rem}
+.tipo-badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:8px}
+.tipo-service{background:var(--blue-bg);color:var(--blue)}
+.tipo-reparacion{background:var(--red-bg);color:var(--red)}
+.tipo-combustible{background:var(--amber-bg);color:var(--amber)}
+</style>
+</head>
+<body>
+
+<!-- PANTALLA LOGIN -->
+<div id="pantalla-login" style="display:none;position:fixed;inset:0;background:var(--bg3);z-index:999;display:flex;align-items:center;justify-content:center;padding:1.5rem">
+  <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2rem 1.5rem;width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text2)"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 4h1a2 2 0 0 1 2 2v3h-2"/><path d="M9 17h6"/></svg>
+      <div style="font-size:20px;font-weight:600;margin-top:8px">Maquinaria Sisini</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Ingresá para continuar</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:4px">Email</label>
+      <input type="email" id="login-email" placeholder="tu@email.com" style="width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:15px">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:4px">Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" style="width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:15px" onkeydown="if(event.key==='Enter')hacerLogin()">
+    </div>
+    <div id="login-error" style="display:none;background:var(--red-bg);color:var(--red);font-size:13px;padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;text-align:center"></div>
+    <button onclick="hacerLogin()" id="btn-login" style="width:100%;padding:11px;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);font-size:15px;font-weight:500;cursor:pointer">
+      Ingresar
+    </button>
+  </div>
+</div>
+
+<div class="app" id="app-principal" style="display:none">
+  <div class="header">
+    <h1>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 4h1a2 2 0 0 1 2 2v3h-2"/><path d="M9 17h6"/></svg>
+      Maquinaria Sisini
+    </h1>
+    <div class="sync-indicator">
+      <div class="dot" id="sync-dot"></div>
+      <span id="sync-label">conectando</span>
+      <button onclick="cerrarSesion()" id="btn-logout" style="display:none;margin-left:8px;background:none;border:none;cursor:pointer;color:var(--text3);padding:2px" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INICIO -->
+    <div class="section active" id="sec-inicio">
+      <div id="setup-warning"></div>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Tractores</div><div class="stat-val">6</div></div>
+        <div class="stat"><div class="stat-label">Camionetas</div><div class="stat-val">5</div></div>
+        <div class="stat"><div class="stat-label">Registros hoy</div><div class="stat-val" id="st-hoy">—</div></div>
+        <div class="stat"><div class="stat-label">Litros (mes)</div><div class="stat-val" id="st-litros">—</div></div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="font-size:14px;font-weight:500">Cisterna (5000 L)</div>
+          <span id="cisterna-badge" class="badge">— L</span>
+        </div>
+        <div style="background:var(--bg3);border-radius:6px;height:10px;overflow:hidden">
+          <div id="cisterna-barra" style="height:100%;background:#185FA5;border-radius:6px;width:0%;transition:width .4s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span style="font-size:11px;color:var(--text3)">0 L</span>
+          <span style="font-size:11px;color:var(--text3)" id="cisterna-pct">0%</span>
+          <span style="font-size:11px;color:var(--text3)">5000 L</span>
+        </div>
+      </div>
+      <div class="section-title">Últimos registros</div>
+      <div id="ultimos-reg"><div class="loader">Cargando...</div></div>
+
+      <div class="section-title" style="margin-top:16px">Costos del mes</div>
+      <div id="costos-inicio"><div class="loader">Cargando...</div></div>
+
+      <div class="section-title" style="margin-top:16px" id="title-alertas-service">Alertas de service</div>
+      <div id="alertas-service"></div>
+    </div>
+
+    <!-- EQUIPOS -->
+    <div class="section" id="sec-equipos">
+      <div id="lista-equipos"></div>
+    </div>
+
+    <!-- DETALLE -->
+    <div class="section" id="sec-detalle">
+      <button class="back-btn" onclick="showSection('equipos')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Equipos
+      </button>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="eq-name" id="det-nombre"></div>
+            <div class="eq-sub" id="det-tipo"></div>
+          </div>
+          <div id="det-semaforo" style="width:14px;height:14px;border-radius:50%;background:var(--border)"></div>
+        </div>
+        <div id="det-alerta-texto" style="font-size:12px;margin-top:6px;display:none"></div>
+      </div>
+      <div class="dtabs">
+        <button class="dtab active" onclick="switchDTab(this,'dtab-hist')">Historial</button>
+        <button class="dtab" onclick="switchDTab(this,'dtab-service')">Service</button>
+        <button class="dtab" onclick="switchDTab(this,'dtab-fuel')">Combustible</button>
+        <button class="dtab" id="dtab-btn-costos" onclick="switchDTab(this,'dtab-costos')">Costos</button>
+        <button class="dtab" onclick="switchDTab(this,'dtab-config')">Config.</button>
+      </div>
+      <div class="dtab-content active" id="dtab-hist"></div>
+      <div class="dtab-content" id="dtab-service"></div>
+      <div class="dtab-content" id="dtab-fuel"></div>
+      <div class="dtab-content" id="dtab-costos"></div>
+      <div class="dtab-content" id="dtab-config"></div>
+    </div>
+
+    <!-- REGISTRAR -->
+    <div class="section" id="sec-registro">
+      <div class="card">
+        <div style="font-size:16px;font-weight:600;margin-bottom:14px">Nuevo registro</div>
+        <div class="form-group">
+          <label class="form-label">Tipo de registro</label>
+          <select id="reg-tipo" onchange="toggleTipo()">
+            <option value="service">Service / mantenimiento</option>
+            <option value="reparacion">Reparación</option>
+            <option value="combustible">Carga de combustible</option>
+            <option value="recarga-cisterna">Recarga de cisterna</option>
+          </select>
+        </div>
+        <div id="campo-equipo" class="form-group">
+          <label class="form-label">Equipo</label>
+          <select id="reg-equipo" onchange="toggleOtro();toggleHorometroLabel()"></select>
+        </div>
+        <div id="campo-origen" class="form-group" style="display:none">
+          <label class="form-label">Origen del combustible</label>
+          <select id="reg-origen">
+            <option value="cisterna">Cisterna propia</option>
+            <option value="bidon">Bidón / Tacho comprado</option>
+            <option value="estacion">Estación de servicio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha</label>
+          <input type="date" id="reg-fecha">
+        </div>
+        <div id="campo-horometro" class="form-group">
+          <label class="form-label" id="label-reg-horometro">Horómetro (hs)</label>
+          <input type="number" id="reg-horometro" placeholder="ej: 1250">
+        </div>
+        <div id="campo-litros" class="form-group" style="display:none">
+          <label class="form-label">Litros cargados</label>
+          <input type="number" id="reg-litros" placeholder="ej: 80">
+        </div>
+        <div id="campo-otro" class="form-group" style="display:none">
+          <label class="form-label">¿Para qué / para quién?</label>
+          <input type="text" id="reg-otro-desc" placeholder="ej: Bidón para vecino, Camión contratista...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          <textarea id="reg-desc" placeholder="Detallá el trabajo realizado, repuestos usados, etc."></textarea>
+        </div>
+        <div id="campo-costo" class="form-group">
+          <label class="form-label">Costo ($)</label>
+          <input type="number" id="reg-costo" placeholder="ej: 50000">
+        </div>
+        <button class="btn btn-primary" id="btn-save" onclick="guardarRegistro()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Guardar en la nube
+        </button>
+      </div>
+    </div>
+
+    <!-- COMBUSTIBLE -->
+    <div class="section" id="sec-combustible">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Este mes</div><div class="stat-val" id="fuel-total-mes">— L</div></div>
+        <div class="stat"><div class="stat-label">Total histórico</div><div class="stat-val" id="fuel-total-hist">— L</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:14px;font-weight:500;margin-bottom:12px">Consumo mensual</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <label style="font-size:12px;color:var(--text2)">Año</label>
+          <select id="fuel-anio" onchange="renderCombustible()" style="width:auto;padding:4px 8px;font-size:13px"></select>
+          <label style="font-size:12px;color:var(--text2);margin-left:8px">Tractor</label>
+          <select id="fuel-filtro-tractor" onchange="renderCombustible()" style="width:auto;padding:4px 8px;font-size:13px">
+            <option value="todos">Todos</option>
+          </select>
+        </div>
+        <canvas id="chart-mensual" height="180"></canvas>
+      </div>
+
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:14px;font-weight:500;margin-bottom:12px">Por tractor (histórico)</div>
+        <canvas id="chart-tractores" height="200"></canvas>
+      </div>
+
+      <div class="section-title" style="margin-top:4px">Historial de cargas</div>
+      <div id="fuel-historial"><div class="loader">Cargando...</div></div>
+    </div>
+
+    <!-- CONSUMO -->
+    <div class="section" id="sec-consumo">
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:4px">Medición de consumo</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5" id="cons-subtitulo">Llenás el tanque → trabajás → llenás de nuevo. La app calcula el consumo automáticamente.</div>
+        <div class="form-group">
+          <label class="form-label" id="cons-label-equipo">Equipo</label>
+          <select id="cons-equipo" onchange="toggleConsEquipo()"></select>
+        </div>
+        <div class="form-group" id="campo-cons-impl">
+          <label class="form-label">Implemento usado</label>
+          <input type="text" id="cons-impl" placeholder="ej: Rastra Audi 32 discos">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px">
+          <div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Fecha inicio</div>
+            <input type="date" id="cons-fecha-ini">
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Fecha fin</div>
+            <input type="date" id="cons-fecha-fin">
+          </div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px">Al inicio — tanque lleno</div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+            <div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:4px" id="label-horo-ini">Horómetro inicial (hs)</div>
+              <input type="number" id="cons-horo-ini" placeholder="ej: 1250">
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Litros cargados</div>
+              <input type="number" id="cons-lit-ini" placeholder="ej: 80">
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px">Al final — llenado de nuevo</div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+            <div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:4px" id="label-horo-fin">Horómetro final (hs)</div>
+              <input type="number" id="cons-horo-fin" placeholder="ej: 1258">
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Litros para llenar</div>
+              <input type="number" id="cons-lit-fin" placeholder="ej: 56">
+            </div>
+          </div>
+        </div>
+        <div id="cons-resultado" style="display:none;background:var(--green-bg);border-radius:var(--radius);padding:14px;margin-bottom:12px;text-align:center">
+          <div style="font-size:28px;font-weight:700;color:var(--green)" id="cons-lxh">—</div>
+          <div style="font-size:13px;color:var(--green);margin-bottom:4px" id="cons-unidad-label">litros por hora</div>
+          <div style="font-size:12px;color:var(--text2)" id="cons-detalle"></div>
+        </div>
+        <button class="btn" onclick="calcularConsumo()" style="margin-bottom:8px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Calcular consumo
+        </button>
+        <button class="btn btn-primary" id="btn-guardar-consumo" onclick="guardarConsumo()" style="display:none">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Guardar medición
+        </button>
+      </div>
+
+      <div class="section-title">Historial de mediciones</div>
+      <div id="cons-historial"><div class="loader">Cargando...</div></div>
+    </div>
+
+    <!-- LABORES -->
+    <div class="section" id="sec-labores">
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:14px">Nueva labor</div>
+        <div class="form-group">
+          <label class="form-label">Tractor</label>
+          <select id="lab-equipo"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de labor</label>
+          <select id="lab-tipo">
+            <option value="Surcado">Surcado</option>
+            <option value="Rastrado">Rastrado</option>
+            <option value="Fumigación">Fumigación</option>
+            <option value="Nivelación">Nivelación</option>
+            <option value="Abonado">Abonado</option>
+            <option value="Cosecha">Cosecha</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lote / Sector</label>
+          <input type="text" id="lab-lote" placeholder="ej: Lote Norte, Caña vieja sur...">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Hectáreas</label>
+            <input type="number" id="lab-has" placeholder="ej: 12.5" step="0.1">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Horas trabajadas</label>
+            <input type="number" id="lab-horas" placeholder="ej: 6" step="0.5">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Fecha inicio</label>
+            <input type="date" id="lab-fecha-ini">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Fecha fin</label>
+            <input type="date" id="lab-fecha-fin">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Operario</label>
+          <input type="text" id="lab-operario" placeholder="ej: Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Implemento usado</label>
+          <input type="text" id="lab-impl" placeholder="ej: Rastra Audi 32 discos">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Observaciones</label>
+          <textarea id="lab-obs" placeholder="Condiciones del suelo, clima, incidencias..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-guardar-labor" onclick="guardarLabor()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Guardar labor
+        </button>
+      </div>
+      <div class="section-title">Historial de labores</div>
+      <div id="lab-historial"><div class="loader">Cargando...</div></div>
+    </div>
+
+    <!-- REPUESTOS -->
+    <div class="section" id="sec-repuestos">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:16px;font-weight:600">Stock de repuestos</div>
+        <button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:13px" onclick="showSection('nuevo-repuesto')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar
+        </button>
+      </div>
+      <div id="rep-lista"><div class="loader">Cargando...</div></div>
+    </div>
+
+    <!-- NUEVO REPUESTO -->
+    <div class="section" id="sec-nuevo-repuesto">
+      <button class="back-btn" onclick="showSection('repuestos')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Repuestos
+      </button>
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:14px">Nuevo repuesto</div>
+        <div class="form-group">
+          <label class="form-label">Nombre del repuesto</label>
+          <input type="text" id="rep-nombre" placeholder="ej: Filtro de aceite Case 180">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Cantidad inicial</label>
+            <input type="number" id="rep-cantidad" placeholder="ej: 3" min="0">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Unidad</label>
+            <select id="rep-unidad">
+              <option value="unidad">Unidad</option>
+              <option value="litro">Litro</option>
+              <option value="kg">Kg</option>
+              <option value="metro">Metro</option>
+              <option value="caja">Caja</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock mínimo (alerta)</label>
+          <input type="number" id="rep-minimo" placeholder="ej: 1" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Equipo al que corresponde (opcional)</label>
+          <select id="rep-equipo-asoc">
+            <option value="">— General / cualquier equipo —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <input type="text" id="rep-notas" placeholder="ej: Marca, código, proveedor...">
+        </div>
+        <button class="btn btn-primary" onclick="guardarRepuesto()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Guardar repuesto
+        </button>
+      </div>
+    </div>
+
+    <!-- DETALLE REPUESTO -->
+    <div class="section" id="sec-repuesto-detalle">
+      <button class="back-btn" onclick="showSection('repuestos')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Repuestos
+      </button>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="eq-name" id="repdet-nombre"></div>
+            <div class="eq-sub" id="repdet-equipo"></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:26px;font-weight:700" id="repdet-stock">0</div>
+            <div style="font-size:12px;color:var(--text2)" id="repdet-unidad"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">
+        <button class="btn" onclick="ajustarStock(-1)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Usar 1
+        </button>
+        <button class="btn btn-primary" onclick="ajustarStock(1)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar 1
+        </button>
+      </div>
+      <div class="form-group" style="display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1">
+          <label class="form-label">Ajuste manual</label>
+          <input type="number" id="rep-ajuste-manual" placeholder="ej: 5 o -2">
+        </div>
+        <button class="btn" style="width:auto;padding:9px 14px" onclick="ajustarStockManual()">Aplicar</button>
+      </div>
+      <div class="section-title" style="margin-top:4px">Movimientos</div>
+      <div id="repdet-movimientos"></div>
+    </div>
+
+    <!-- QR -->
+    <div class="section" id="sec-qr">
+      <div class="card">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Equipo</label>
+          <select id="qr-equipo" onchange="renderQR()"></select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="qr-wrap">
+          <img id="qr-img" width="220" height="220" style="border-radius:8px;border:0.5px solid var(--border);display:block" alt="Código QR">
+          <div class="qr-name" id="qr-label"></div>
+          <div id="qr-url" style="font-size:11px;color:var(--text3);word-break:break-all;text-align:center;margin-top:4px;padding:0 8px"></div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);text-align:center;margin-bottom:12px;line-height:1.6">
+          Imprimí este QR y pegalo en la máquina.<br>Al escanearlo se abre el historial en tiempo real.
+        </div>
+        <button class="btn" onclick="copiarLink()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar enlace del equipo
+        </button>
+        <button class="btn" onclick="abrirQRNuevaPestana()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Abrir QR para imprimir
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="nav">
+    <button class="active" onclick="showSection('inicio',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Inicio
+    </button>
+    <button onclick="showSection('equipos',this)">
+      <svg viewBox="0 0 24 24"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 4h1a2 2 0 0 1 2 2v3h-2"/></svg>
+      Equipos
+    </button>
+    <button onclick="showSection('registro',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Registrar
+    </button>
+    <button onclick="showSection('combustible',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 22V8l7-6 7 6v14"/><path d="M14 22v-5a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v5"/><path d="M18 9l2 2v7a2 2 0 0 1-2 2h-1"/></svg>
+      Combustible
+    </button>
+    <button onclick="showSection('consumo',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Consumo
+    </button>
+    <button onclick="showSection('qr',this)" id="nav-qr">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/><path d="M14 14h3v3h-3z"/><path d="M17 17h4v4h-4z"/><path d="M14 17h3"/><path d="M17 14v3"/></svg>
+      QR
+    </button>
+    <button onclick="toggleMenu(this)" id="nav-mas">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      Más
+    </button>
+  </div>
+  <!-- Menú Más -->
+  <div id="menu-mas" style="display:none;position:absolute;bottom:60px;right:0;left:0;background:var(--bg);border-top:0.5px solid var(--border);z-index:20;padding:8px 0">
+    <button onclick="showSection('labores');cerrarMenu()" style="width:100%;padding:13px 1.25rem;border:none;background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Registro de labores
+    </button>
+    <button onclick="showSection('repuestos');cerrarMenu()" style="width:100%;padding:13px 1.25rem;border:none;background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Stock de repuestos
+    </button>
+    <button onclick="showSection('qr');cerrarMenu()" style="width:100%;padding:13px 1.25rem;border:none;background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/></svg>
+      Códigos QR
+    </button>
+    <button onclick="showSection('exportar');cerrarMenu()" style="width:100%;padding:13px 1.25rem;border:none;background:transparent;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar PDF / Excel
+    </button>
+  </div>
+</div>
+
+<!-- SECCIÓN EXPORTAR (fuera del app div para poder imprimir) -->
+<div class="section" id="sec-exportar" style="display:none;max-width:480px;margin:0 auto;padding:1rem 1.25rem">
+  <button class="back-btn" onclick="showSection('inicio');cerrarMenu()">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Volver
+  </button>
+  <div style="font-size:16px;font-weight:600;margin-bottom:14px">Exportar datos</div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">Resumen general de flota</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Todos los equipos — estado, costos y alertas</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <button class="btn btn-primary" onclick="exportarPDF('flota')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF
+      </button>
+      <button class="btn" onclick="exportarExcel('flota')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">Por equipo</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Historial completo, costos y consumo</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Seleccioná el equipo</label>
+      <select id="exp-equipo"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <button class="btn btn-primary" onclick="exportarPDF('equipo')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF
+      </button>
+      <button class="btn" onclick="exportarExcel('equipo')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">Período</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:0">
+      <div>
+        <label class="form-label">Desde</label>
+        <input type="date" id="exp-desde">
+      </div>
+      <div>
+        <label class="form-label">Hasta</label>
+        <input type="date" id="exp-hasta">
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:6px">Dejá vacío para exportar todo el historial</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- SheetJS para Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- jsPDF para PDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<!-- QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+<script>
+const EQUIPOS=[
+  {id:'case180',nombre:'Case 180',tipo:'Tractor',marca:'Case IH'},
+  {id:'case150',nombre:'Case 150',tipo:'Tractor',marca:'Case IH'},
+  {id:'nh130',nombre:'New Holland T6.130',tipo:'Tractor',marca:'New Holland'},
+  {id:'nh8030',nombre:'New Holland 8030',tipo:'Tractor',marca:'New Holland'},
+  {id:'mf1088',nombre:'Massey Ferguson 1088',tipo:'Tractor',marca:'Massey Ferguson'},
+  {id:'fiat700e',nombre:'Fiat 700E',tipo:'Tractor',marca:'Fiat'},
+  {id:'fumig',nombre:'Fumigadora Favot 650L',tipo:'Implemento',marca:'Favot'},
+  {id:'pala-arrastre',nombre:'Pala arrastre Tatú',tipo:'Implemento',marca:'Tatú'},
+  {id:'pala-nivel',nombre:'Pala niveladora chica',tipo:'Implemento',marca:'-'},
+  {id:'rastra-audi',nombre:'Rastra Audi 32 discos',tipo:'Implemento',marca:'Audi'},
+  {id:'rastra-tatu',nombre:'Rastra Tatú 28 discos',tipo:'Implemento',marca:'Tatú'},
+  {id:'surcador',nombre:'Surcador doble',tipo:'Implemento',marca:'-'},
+  {id:'tapador',nombre:'Tapador',tipo:'Implemento',marca:'-'},
+  {id:'carros',nombre:'Carros Helvéticos (5)',tipo:'Implemento',marca:'Helvético'},
+  {id:'rastra-baja',nombre:'Rastra baja bordo 3 surcos',tipo:'Implemento',marca:'-'},
+  {id:'campra',nombre:'Paquetes arrastre Campra (4)',tipo:'Implemento',marca:'Campra'},
+  {id:'indujor',nombre:'Paquetes arrastre Indujor (8)',tipo:'Implemento',marca:'Indujor'},
+  {id:'abonadora',nombre:'Abonadora 8 paquetes',tipo:'Implemento',marca:'-'},
+  {id:'hilux-gr',nombre:'Toyota Hilux GR 2023',tipo:'Camioneta',marca:'Toyota'},
+  {id:'hilux-cs',nombre:'Toyota Hilux Cabina Simple',tipo:'Camioneta',marca:'Toyota'},
+  {id:'sw4',nombre:'Toyota Hilux SW4 2011',tipo:'Camioneta',marca:'Toyota'},
+  {id:'dodge-ram',nombre:'Dodge Ram 2010',tipo:'Camioneta',marca:'Dodge'},
+  {id:'hilux-sr',nombre:'Toyota Hilux SR 2023',tipo:'Camioneta',marca:'Toyota'},
+  {id:'otro',nombre:'Otro',tipo:'Otro',marca:'-'},
+];
+
+let db=null;
+let registros=[];
+let repuestos=[];
+let configs={};
+let equipoActivo=null;
+let repuestoActivo=null;
+let appUrl=window.location.href.split('?')[0];
+
+function initFirebase(){
+  const cfg=FIREBASE_CONFIG;
+  if(!cfg.apiKey||cfg.apiKey==='TU_API_KEY'){
+    setSyncStatus('warn','sin configurar');
+    mostrarSetupWarning();
+    cargarLocal();
+    mostrarApp();
+    return;
+  }
+  try{
+    firebase.initializeApp(cfg);
+    db=firebase.database();
+    const auth=firebase.auth();
+    setSyncStatus('syncing','conectando...');
+
+    // Si es modo lectura (QR), mostrar app directo sin login
+    if(MODO_LECTURA){
+      mostrarApp();
+      db.ref('registros').on('value',snap=>{
+        const data=snap.val();
+        registros=data?Object.values(data).sort((a,b)=>b.timestamp-a.timestamp):[];
+        setSyncStatus('online','en vivo');
+        renderAll();
+      },()=>{cargarLocal();});
+      db.ref('repuestos').on('value',snap=>{
+        const data=snap.val();
+        repuestos=data?Object.values(data):[];
+        renderRepuestos();
+      });
+      db.ref('configs').on('value',snap=>{configs=snap.val()||{};});
+      return;
+    }
+
+    // Modo normal — chequear auth
+    auth.onAuthStateChanged(user=>{
+      if(user){
+        mostrarApp();
+        document.getElementById('btn-logout').style.display='inline-block';
+        db.ref('registros').on('value',snap=>{
+          const data=snap.val();
+          registros=data?Object.values(data).sort((a,b)=>b.timestamp-a.timestamp):[];
+          guardarLocal();
+          setSyncStatus('online','en vivo');
+          renderAll();
+        },err=>{
+          console.error(err);
+          setSyncStatus('offline','sin conexión');
+          cargarLocal();
+        });
+        db.ref('repuestos').on('value',snap=>{
+          const data=snap.val();
+          repuestos=data?Object.values(data):[];
+          renderRepuestos();
+        });
+        db.ref('configs').on('value',snap=>{
+          configs=snap.val()||{};
+          renderAlertasService();
+          if(equipoActivo)renderConfigEquipo(equipoActivo);
+        });
+      }else{
+        mostrarLogin();
+      }
+    });
+  }catch(e){
+    console.error(e);
+    cargarLocal();
+    mostrarApp();
+  }
+}
+
+function mostrarLogin(){
+  document.getElementById('pantalla-login').style.display='flex';
+  document.getElementById('app-principal').style.display='none';
+  setTimeout(()=>document.getElementById('login-email').focus(),100);
+}
+
+function mostrarApp(){
+  document.getElementById('pantalla-login').style.display='none';
+  document.getElementById('app-principal').style.display='flex';
+}
+
+async function hacerLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-error');
+  const btn=document.getElementById('btn-login');
+  if(!email||!pass){errEl.textContent='Ingresá email y contraseña';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Ingresando...';
+  errEl.style.display='none';
+  try{
+    await firebase.auth().signInWithEmailAndPassword(email,pass);
+  }catch(e){
+    let msg='Email o contraseña incorrectos';
+    if(e.code==='auth/too-many-requests')msg='Demasiados intentos. Intentá más tarde.';
+    errEl.textContent=msg;
+    errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Ingresar';
+  }
+}
+
+async function cerrarSesion(){
+  if(!confirm('¿Cerrar sesión?'))return;
+  await firebase.auth().signOut();
+  document.getElementById('btn-logout').style.display='none';
+  setSyncStatus('offline','desconectado');
+}
+
+function guardarLocal(){try{localStorage.setItem('maq_v3',JSON.stringify(registros))}catch(e){}}
+function cargarLocal(){
+  try{const d=localStorage.getItem('maq_v3');registros=d?JSON.parse(d):[];}catch(e){registros=[];}
+  renderAll();
+}
+
+function setSyncStatus(state,label){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  dot.className='dot';
+  if(state==='online')dot.classList.add('online');
+  else if(state==='syncing')dot.classList.add('syncing');
+  lbl.textContent=label;
+}
+
+function mostrarSetupWarning(){
+  document.getElementById('setup-warning').innerHTML=`
+  <div class="setup-card">
+    <div class="setup-title">⚙ Configurar Firebase para sincronización</div>
+    <div class="setup-step">1. Ir a console.firebase.google.com → crear proyecto</div>
+    <div class="setup-step">2. Compilación → Realtime Database → Crear (modo prueba)</div>
+    <div class="setup-step">3. Configuración del proyecto → </> Web → copiar config</div>
+    <div class="setup-step">4. Abrí este archivo HTML y reemplazá FIREBASE_CONFIG</div>
+    <div class="setup-step" style="margin-top:8px;color:var(--text2)">Por ahora los datos se guardan localmente en este dispositivo.</div>
+  </div>`;
+}
+
+function getExpFiltros(){
+  const desde=document.getElementById('exp-desde')?.value||null;
+  const hasta=document.getElementById('exp-hasta')?.value||null;
+  return{desde,hasta};
+}
+
+function filtrarPorPeriodo(regs,desde,hasta){
+  return regs.filter(r=>{
+    if(!r.fecha)return true;
+    if(desde&&r.fecha<desde)return false;
+    if(hasta&&r.fecha>hasta)return false;
+    return true;
+  });
+}
+
+function poblarSelectExportar(){
+  const sel=document.getElementById('exp-equipo');
+  if(!sel)return;
+  sel.innerHTML='';
+  EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta').forEach(e=>{
+    const o=document.createElement('option');o.value=e.id;o.textContent=e.nombre;sel.appendChild(o);
+  });
+}
+
+function exportarExcel(modo){
+  if(typeof XLSX==='undefined'){showToast('Cargando librería, intentá de nuevo');return;}
+  const{desde,hasta}=getExpFiltros();
+  const wb=XLSX.utils.book_new();
+  const hoy=new Date().toLocaleDateString('es-AR');
+  let regsBase=filtrarPorPeriodo(registros,desde,hasta);
+  const equiposExp=modo==='equipo'
+    ?[EQUIPOS.find(e=>e.id===document.getElementById('exp-equipo').value)].filter(Boolean)
+    :EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta');
+
+  const filas=regsBase
+    .filter(r=>modo==='flota'||r.equipoId===equiposExp[0]?.id)
+    .map(r=>{
+      const eq=EQUIPOS.find(e=>e.id===r.equipoId);
+      return{Fecha:r.fecha||'',Equipo:eq?eq.nombre:'—',Tipo:r.tipo,Descripción:r.desc||'','Horóm./Km':r.horometro||'',Litros:r.litros||'','Costo ($)':r.costo||'',Origen:r.origen||''};
+    });
+  if(filas.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filas),'Registros');
+
+  const fuelFilas=regsBase
+    .filter(r=>r.tipo==='combustible'&&(modo==='flota'||r.equipoId===equiposExp[0]?.id))
+    .map(r=>{const eq=EQUIPOS.find(e=>e.id===r.equipoId);return{Fecha:r.fecha,Equipo:eq?eq.nombre:'—',Litros:r.litros,Origen:r.origen||'',Descripción:r.desc};});
+  if(fuelFilas.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(fuelFilas),'Combustible');
+
+  const labFilas=regsBase
+    .filter(r=>r.tipo==='labor'&&(modo==='flota'||r.equipoId===equiposExp[0]?.id))
+    .map(r=>{const eq=EQUIPOS.find(e=>e.id===r.equipoId);return{Fecha:r.fecha,Equipo:eq?eq.nombre:'—',Labor:r.subTipo,Lote:r.lote,'Hectáreas':r.has||'',Horas:r.horas||'',Operario:r.operario||'',Implemento:r.implemento||''};});
+  if(labFilas.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(labFilas),'Labores');
+
+  const costFilas=regsBase
+    .filter(r=>r.costo&&parseFloat(r.costo)>0&&(modo==='flota'||r.equipoId===equiposExp[0]?.id))
+    .map(r=>{const eq=EQUIPOS.find(e=>e.id===r.equipoId);return{Fecha:r.fecha,Equipo:eq?eq.nombre:'—',Tipo:r.tipo,Descripción:r.desc,'Costo ($)':parseFloat(r.costo)};});
+  if(costFilas.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(costFilas),'Costos');
+
+  if(modo==='flota'){
+    const resFilas=equiposExp.map(e=>{
+      const regsEq=regsBase.filter(r=>r.equipoId===e.id);
+      const litros=Math.round(regsEq.filter(r=>r.tipo==='combustible').reduce((a,r)=>a+(parseFloat(r.litros)||0),0));
+      const costo=Math.round(regsEq.filter(r=>r.costo).reduce((a,r)=>a+(parseFloat(r.costo)||0),0));
+      const estado=calcularEstadoService(e.id);
+      return{Equipo:e.nombre,Tipo:e.tipo,Registros:regsEq.length,'Litros totales':litros,'Costo total ($)':costo,Service:estado?`${estado.estado} (${estado.restante} ${estado.unidad} restantes)`:'Sin configurar'};
+    });
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(resFilas),'Resumen flota');
+  }
+
+  const nombre=modo==='flota'?`flota-sisini-${hoy.replace(/\//g,'-')}.xlsx`:`${(equiposExp[0]?.nombre||'equipo').replace(/ /g,'-')}-${hoy.replace(/\//g,'-')}.xlsx`;
+  XLSX.writeFile(wb,nombre);
+  showToast('Excel descargado');
+}
+
+function exportarPDF(modo){
+  if(typeof window.jspdf==='undefined'){showToast('Cargando librería, intentá de nuevo');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const{desde,hasta}=getExpFiltros();
+  const hoy=new Date().toLocaleDateString('es-AR');
+  let regsBase=filtrarPorPeriodo(registros,desde,hasta);
+  const equiposExp=modo==='equipo'
+    ?[EQUIPOS.find(e=>e.id===document.getElementById('exp-equipo').value)].filter(Boolean)
+    :EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta');
+
+  let y=15;
+  doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text('Maquinaria Sisini',14,y);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(100);
+  doc.text(`Generado: ${hoy}${desde?' · Desde: '+desde:''}${hasta?' · Hasta: '+hasta:''}`,14,y+7);
+  doc.setTextColor(0);y+=18;
+
+  if(modo==='flota'){
+    doc.setFontSize(13);doc.setFont('helvetica','bold');
+    doc.text('Resumen general de flota',14,y);y+=8;
+    const resRows=equiposExp.map(e=>{
+      const regsEq=regsBase.filter(r=>r.equipoId===e.id);
+      const litros=Math.round(regsEq.filter(r=>r.tipo==='combustible').reduce((a,r)=>a+(parseFloat(r.litros)||0),0));
+      const costo=Math.round(regsEq.filter(r=>r.costo).reduce((a,r)=>a+(parseFloat(r.costo)||0),0));
+      const estado=calcularEstadoService(e.id);
+      const sem=estado?({'verde':'OK','amarillo':'!','rojo':'VENCIDO'}[estado.estado]||'-'):'-';
+      return[e.nombre,e.tipo,regsEq.length,litros+' L','$'+costo.toLocaleString('es-AR'),sem+(estado?' '+estado.restante+' '+estado.unidad:'')];
+    });
+    doc.autoTable({startY:y,head:[['Equipo','Tipo','Registros','Combustible','Costo total','Service']],body:resRows,styles:{fontSize:9},headStyles:{fillColor:[24,95,165],textColor:255},alternateRowStyles:{fillColor:[240,240,240]}});
+    y=doc.lastAutoTable.finalY+10;
+
+    const alertas=equiposExp.map(e=>({e,estado:calcularEstadoService(e.id)})).filter(x=>x.estado&&x.estado.estado!=='verde');
+    if(alertas.length){
+      doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text('Alertas de service',14,y);y+=6;
+      alertas.forEach(({e,estado})=>{
+        doc.setFontSize(9);doc.setFont('helvetica','normal');
+        const msg=estado.estado==='rojo'?`VENCIDO - ${estado.transcurrido} ${estado.unidad} desde ultimo service`:`PROXIMO - faltan ${estado.restante} ${estado.unidad}`;
+        doc.text(`- ${e.nombre}: ${msg}`,14,y);y+=5;
+      });y+=4;
+    }
+    const mes=new Date().toISOString().split('T')[0].substring(0,7);
+    const costMes=regsBase.filter(r=>r.costo&&r.fecha&&r.fecha.startsWith(mes));
+    if(costMes.length){
+      if(y>240){doc.addPage();y=15;}
+      doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text('Costos del mes',14,y);y+=4;
+      const costRows=costMes.map(r=>{const eq=EQUIPOS.find(e=>e.id===r.equipoId);return[r.fecha,eq?eq.nombre:'—',r.tipo,(r.desc||'').substring(0,40),'$'+parseFloat(r.costo).toLocaleString('es-AR')];});
+      doc.autoTable({startY:y,head:[['Fecha','Equipo','Tipo','Descripción','Costo']],body:costRows,styles:{fontSize:8},headStyles:{fillColor:[24,95,165],textColor:255},alternateRowStyles:{fillColor:[240,240,240]}});
+    }
+  }else{
+    const eq=equiposExp[0];
+    if(!eq){showToast('Seleccioná un equipo');return;}
+    const regsEq=regsBase.filter(r=>r.equipoId===eq.id);
+    doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text(eq.nombre,14,y);
+    doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(100);doc.text(`${eq.tipo} - ${eq.marca}`,14,y+6);doc.setTextColor(0);y+=16;
+    const estado=calcularEstadoService(eq.id);
+    if(estado){
+      const msg=estado.estado==='rojo'?`Service VENCIDO - ${estado.transcurrido} ${estado.unidad} desde el ultimo`:estado.estado==='amarillo'?`Service proximo - faltan ${estado.restante} ${estado.unidad}`:`Service al dia - ${estado.restante} ${estado.unidad} restantes`;
+      doc.setFontSize(9);doc.text(msg,14,y);y+=7;
+    }
+    const litros=Math.round(regsEq.filter(r=>r.tipo==='combustible').reduce((a,r)=>a+(parseFloat(r.litros)||0),0));
+    const costo=Math.round(regsEq.filter(r=>r.costo).reduce((a,r)=>a+(parseFloat(r.costo)||0),0));
+    doc.setFontSize(9);doc.text(`Combustible total: ${litros} L  |  Costo historico: $${costo.toLocaleString('es-AR')}  |  Registros: ${regsEq.length}`,14,y);y+=10;
+    if(regsEq.length){
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Historial de registros',14,y);y+=4;
+      const rows=regsEq.map(r=>[r.fecha||'',r.tipo,(r.desc||'').substring(0,40),r.horometro?r.horometro+' hs':'',r.litros?r.litros+' L':'',r.costo?'$'+parseFloat(r.costo).toLocaleString('es-AR'):'']);
+      doc.autoTable({startY:y,head:[['Fecha','Tipo','Descripción','Horóm.','Litros','Costo']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[24,95,165],textColor:255},alternateRowStyles:{fillColor:[240,240,240]}});
+    }
+  }
+  const nombre=modo==='flota'?`flota-sisini-${hoy.replace(/\//g,'-')}.pdf`:`${(equiposExp[0]?.nombre||'equipo').replace(/ /g,'-')}-${hoy.replace(/\//g,'-')}.pdf`;
+  doc.save(nombre);
+  showToast('PDF descargado');
+}
+
+function toggleMenu(btn){
+  const m=document.getElementById('menu-mas');
+  const abierto=m.style.display==='block';
+  m.style.display=abierto?'none':'block';
+  btn.classList.toggle('active',!abierto);
+}
+function cerrarMenu(){
+  document.getElementById('menu-mas').style.display='none';
+  document.getElementById('nav-mas').classList.remove('active');
+}
+
+async function guardarLabor(){
+  const equipoId=document.getElementById('lab-equipo').value;
+  const tipo=document.getElementById('lab-tipo').value;
+  const lote=document.getElementById('lab-lote').value.trim();
+  const has=document.getElementById('lab-has').value;
+  const horas=document.getElementById('lab-horas').value;
+  const fechaIni=document.getElementById('lab-fecha-ini').value;
+  const fechaFin=document.getElementById('lab-fecha-fin').value;
+  const operario=document.getElementById('lab-operario').value.trim();
+  const impl=document.getElementById('lab-impl').value.trim();
+  const obs=document.getElementById('lab-obs').value.trim();
+  if(!lote){showToast('Ingresá el lote o sector');return;}
+  const reg={
+    id:'l'+Date.now(),timestamp:Date.now(),
+    tipo:'labor',subTipo:tipo,
+    equipoId,fecha:fechaFin||fechaIni||new Date().toISOString().split('T')[0],
+    fechaIni,fechaFin,lote,has:parseFloat(has)||null,
+    horas:parseFloat(horas)||null,operario,implemento:impl,obs,
+    desc:`${tipo} · ${lote}${has?' · '+has+' ha':''}${operario?' · '+operario:''}`,
+  };
+  const btn=document.getElementById('btn-guardar-labor');
+  btn.disabled=true;btn.innerHTML='Guardando...';
+  if(db){
+    try{await db.ref('registros/'+reg.id).set(reg);showToast('Labor guardada');}
+    catch(e){registros=[reg,...registros];guardarLocal();renderAll();showToast('Guardado localmente');}
+  }else{registros=[reg,...registros];guardarLocal();renderAll();showToast('Labor guardada');}
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Guardar labor';
+  ['lab-lote','lab-has','lab-horas','lab-operario','lab-impl','lab-obs'].forEach(id=>document.getElementById(id).value='');
+  renderLaborHistorial();
+}
+
+function renderLaborHistorial(){
+  const cont=document.getElementById('lab-historial');
+  if(!cont)return;
+  const labs=registros.filter(r=>r.tipo==='labor');
+  if(!labs.length){cont.innerHTML='<div class="empty">Sin labores registradas aún.</div>';return;}
+  cont.innerHTML=labs.map(r=>{
+    const eq=EQUIPOS.find(e=>e.id===r.equipoId);
+    return `<div class="hist-item" id="item-${r.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1">
+          <div class="hist-date">${ff(r.fecha)} · <span class="tipo-badge" style="background:var(--green-bg);color:var(--green)">${r.subTipo}</span></div>
+          <div class="hist-desc">${r.lote}${r.has?' · '+r.has+' ha':''}</div>
+          <div class="hist-meta">${eq?eq.nombre:'—'}${r.operario?' · '+r.operario:''}${r.horas?' · '+r.horas+' hs':''}${r.implemento?' · '+r.implemento:''}</div>
+          ${r.obs?`<div class="hist-meta" style="margin-top:2px;font-style:italic">${r.obs}</div>`:''}
+        </div>
+        ${!MODO_LECTURA?`<button onclick="borrarRegistro('${r.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px" title="Eliminar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function guardarRepuesto(){
+  const nombre=document.getElementById('rep-nombre').value.trim();
+  if(!nombre){showToast('Ingresá el nombre del repuesto');return;}
+  const rep={
+    id:'rep'+Date.now(),timestamp:Date.now(),
+    nombre,
+    cantidad:parseFloat(document.getElementById('rep-cantidad').value)||0,
+    unidad:document.getElementById('rep-unidad').value,
+    minimo:parseFloat(document.getElementById('rep-minimo').value)||0,
+    equipoAsoc:document.getElementById('rep-equipo-asoc').value||'',
+    notas:document.getElementById('rep-notas').value.trim(),
+    movimientos:[{fecha:new Date().toISOString().split('T')[0],delta:parseFloat(document.getElementById('rep-cantidad').value)||0,motivo:'Stock inicial'}],
+  };
+  if(db){
+    try{await db.ref('repuestos/'+rep.id).set(rep);showToast('Repuesto guardado');}
+    catch(e){repuestos=[...repuestos,rep];renderRepuestos();showToast('Guardado localmente');}
+  }else{repuestos=[...repuestos,rep];renderRepuestos();showToast('Repuesto guardado');}
+  ['rep-nombre','rep-cantidad','rep-minimo','rep-notas'].forEach(id=>document.getElementById(id).value='');
+  showSection('repuestos');
+}
+
+function renderRepuestos(){
+  const cont=document.getElementById('rep-lista');
+  if(!cont)return;
+  if(!repuestos.length){
+    cont.innerHTML='<div class="empty">Sin repuestos aún.<br>Agregá el primero con el botón de arriba.</div>';
+    return;
+  }
+  const agotados=repuestos.filter(r=>r.cantidad<=r.minimo).length;
+  let html='';
+  if(agotados){
+    html+=`<div style="background:var(--red-bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;font-size:13px;color:var(--red)">
+      <strong>${agotados} repuesto${agotados>1?'s':''}</strong> con stock bajo o agotado
+    </div>`;
+  }
+  [...repuestos].sort((a,b)=>a.nombre.localeCompare(b.nombre)).forEach(r=>{
+    const eq=EQUIPOS.find(e=>e.id===r.equipoAsoc);
+    const bajo=r.cantidad<=r.minimo;
+    html+=`<div class="eq-card" onclick="verRepuesto('${r.id}')">
+      <div style="flex:1">
+        <div class="eq-name" style="font-size:14px">${r.nombre}</div>
+        <div class="eq-sub">${eq?eq.nombre:'General'}${r.notas?' · '+r.notas:''}</div>
+      </div>
+      <span class="badge ${bajo?'badge-alert':'badge-ok'}">${r.cantidad} ${r.unidad}</span>
+    </div>`;
+  });
+  cont.innerHTML=html;
+}
+
+function verRepuesto(id){
+  repuestoActivo=id;
+  const r=repuestos.find(rep=>rep.id===id);
+  if(!r)return;
+  const eq=EQUIPOS.find(e=>e.id===r.equipoAsoc);
+  document.getElementById('repdet-nombre').textContent=r.nombre;
+  document.getElementById('repdet-equipo').textContent=eq?eq.nombre:'General';
+  document.getElementById('repdet-stock').textContent=r.cantidad;
+  document.getElementById('repdet-unidad').textContent=r.unidad+(r.minimo?` · mín: ${r.minimo}`:'');
+  document.getElementById('repdet-stock').style.color=r.cantidad<=r.minimo?'var(--red)':'var(--text)';
+  const movs=document.getElementById('repdet-movimientos');
+  const hist=r.movimientos||[];
+  movs.innerHTML=hist.length?[...hist].reverse().map(m=>`<div class="hist-item">
+    <div class="hist-date">${m.fecha}</div>
+    <div class="hist-desc" style="color:${m.delta>=0?'var(--green)':'var(--red)'}">${m.delta>=0?'+':''}${m.delta} ${r.unidad}</div>
+    <div class="hist-meta">${m.motivo}</div>
+  </div>`).join(''):'<div class="empty">Sin movimientos</div>';
+  showSection('repuesto-detalle');
+}
+
+async function ajustarStock(delta){await aplicarMovimiento(delta,delta>0?'Entrada manual':'Uso/consumo');}
+async function ajustarStockManual(){
+  const val=parseFloat(document.getElementById('rep-ajuste-manual').value);
+  if(isNaN(val)||val===0){showToast('Ingresá un número válido');return;}
+  await aplicarMovimiento(val,val>0?'Entrada manual':'Uso/consumo');
+  document.getElementById('rep-ajuste-manual').value='';
+}
+async function aplicarMovimiento(delta,motivo){
+  const r=repuestos.find(rep=>rep.id===repuestoActivo);
+  if(!r)return;
+  const nuevaCantidad=Math.max(0,r.cantidad+delta);
+  const mov={fecha:new Date().toISOString().split('T')[0],delta,motivo};
+  r.cantidad=nuevaCantidad;
+  r.movimientos=[...(r.movimientos||[]),mov];
+  if(db){
+    try{await db.ref('repuestos/'+r.id).update({cantidad:nuevaCantidad,movimientos:r.movimientos});showToast('Stock actualizado');}
+    catch(e){showToast('Error al actualizar');}
+  }else{renderRepuestos();}
+  verRepuesto(repuestoActivo);
+  showToast('Stock actualizado');
+}
+
+async function guardarRegistro(){
+  const tipo=document.getElementById('reg-tipo').value;
+  const esRecarga=tipo==='recarga-cisterna';
+  const equipoId=esRecarga?'cisterna':document.getElementById('reg-equipo').value;
+  const origen=tipo==='combustible'?document.getElementById('reg-origen').value:null;
+  const otroDesc=document.getElementById('reg-otro-desc').value.trim();
+  const fecha=document.getElementById('reg-fecha').value;
+  const desc=document.getElementById('reg-desc').value.trim();
+  if(!desc){showToast('Por favor ingresá una descripción');return;}
+  if(!fecha){showToast('Elegí una fecha');return;}
+
+  const reg={
+    id:'r'+Date.now(),
+    timestamp:Date.now(),
+    tipo,equipoId,fecha,origen,
+    desc: equipoId==='otro'&&otroDesc ? `[${otroDesc}] ${desc}` : desc,
+    horometro:document.getElementById('reg-horometro').value||null,
+    litros:document.getElementById('reg-litros').value||null,
+    costo:document.getElementById('reg-costo').value||null,
+  };
+
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true;
+  btn.innerHTML='Guardando...';
+
+  if(db){
+    try{
+      await db.ref('registros/'+reg.id).set(reg);
+      showToast('¡Guardado en la nube!');
+    }catch(e){
+      registros=[reg,...registros];guardarLocal();
+      showToast('Guardado localmente (sin conexión)');
+    }
+  }else{
+    registros=[reg,...registros];guardarLocal();renderAll();
+    showToast('Guardado localmente');
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Guardar en la nube';
+  document.getElementById('reg-desc').value='';
+  document.getElementById('reg-horometro').value='';
+  document.getElementById('reg-litros').value='';
+  document.getElementById('reg-costo').value='';
+  document.getElementById('reg-otro-desc').value='';
+  document.getElementById('campo-otro').style.display='none';
+  showSection('inicio',document.querySelector('.nav button'));
+}
+
+function renderAll(){renderInicio();renderEquipos();renderCombustible();renderConsumoHistorial();renderCostosInicio();renderLaborHistorial();renderRepuestos();renderAlertasService();if(equipoActivo)renderDetActivo();}
+
+function renderInicio(){
+  calcularCisterna();
+  const hoy=new Date().toISOString().split('T')[0];
+  const mes=hoy.substring(0,7);
+  document.getElementById('st-hoy').textContent=registros.filter(r=>r.fecha===hoy).length;
+  const litros=registros.filter(r=>r.tipo==='combustible'&&r.fecha&&r.fecha.startsWith(mes)).reduce((a,r)=>a+(parseFloat(r.litros)||0),0);
+  document.getElementById('st-litros').textContent=Math.round(litros);
+  const cont=document.getElementById('ultimos-reg');
+  if(!registros.length){cont.innerHTML='<div class="empty">Sin registros aún.<br>Usá el + para agregar el primero.</div>';return;}
+  cont.innerHTML=registros.slice(0,10).map(r=>{
+    const eq=EQUIPOS.find(e=>e.id===r.equipoId);
+    return `<div class="hist-item" id="item-${r.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="hist-date">${ff(r.fecha)} · <span class="tipo-badge tipo-${r.tipo}">${r.tipo}</span></div>
+          <div class="hist-desc">${eq?eq.nombre:'—'}</div>
+          <div class="hist-meta">${r.desc}${r.litros?' · '+r.litros+'L':''}${r.costo?' · $'+Number(r.costo).toLocaleString('es-AR'):''}</div>
+        </div>
+        <button onclick="borrarRegistro('${r.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px;border-radius:4px" title="Eliminar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderEquipos(){
+  const cont=document.getElementById('lista-equipos');
+  const tract=EQUIPOS.filter(e=>e.tipo==='Tractor');
+  const impl=EQUIPOS.filter(e=>e.tipo==='Implemento');
+  const camion=EQUIPOS.filter(e=>e.tipo==='Camioneta');
+  let h='<div class="section-title">Tractores</div>';
+  h+=tract.map(eCard).join('');
+  h+='<div class="section-title" style="margin-top:14px">Camionetas</div>';
+  h+=camion.map(eCard).join('');
+  h+='<div class="section-title" style="margin-top:14px">Implementos</div>';
+  h+=impl.map(eCard).join('');
+  cont.innerHTML=h;
+}
+
+function eCard(e){
+  const regs=registros.filter(r=>r.equipoId===e.id);
+  const ul=regs[0];
+  const badge=regs.length
+    ?`<span class="badge badge-ok">${regs.length} reg.</span>`
+    :`<span class="badge badge-warn">Sin datos</span>`;
+  const estado=calcularEstadoService(e.id);
+  const colores={verde:'#639922',amarillo:'#EF9F27',rojo:'#E24B4A'};
+  const sem=estado?`<div style="width:9px;height:9px;border-radius:50%;background:${colores[estado.estado]};margin-right:8px;flex-shrink:0"></div>`:'';
+  return `<div class="eq-card" onclick="verDetalle('${e.id}')">
+    <div style="display:flex;align-items:center;flex:1;min-width:0">
+      ${sem}
+      <div>
+        <div class="eq-name">${e.nombre}</div>
+        <div class="eq-sub">${e.marca}${ul?' · Últ: '+ff(ul.fecha):''}</div>
+      </div>
+    </div>${badge}
+  </div>`;
+}
+
+function verDetalle(id){
+  equipoActivo=id;
+  const eq=EQUIPOS.find(e=>e.id===id);
+  document.getElementById('det-nombre').textContent=eq.nombre;
+  document.getElementById('det-tipo').textContent=eq.tipo+' · '+eq.marca;
+  document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.querySelectorAll('.dtab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('dtab-hist').classList.add('active');
+  renderDetActivo();
+  showSection('detalle');
+}
+
+function renderDetActivo(){
+  const data=registros.filter(r=>r.equipoId===equipoActivo);
+  renderDTab('hist',data);
+  renderDTab('service',data.filter(r=>r.tipo==='service'||r.tipo==='reparacion'));
+  renderDTab('fuel',data.filter(r=>r.tipo==='combustible'));
+  renderCostosEquipo(equipoActivo);
+  renderConfigEquipo(equipoActivo);
+  renderSemaforoEquipo(equipoActivo);
+}
+
+function renderDTab(tab,data){
+  const cont=document.getElementById('dtab-'+tab);
+  if(!cont)return;
+  if(!data.length){cont.innerHTML='<div class="empty">Sin registros</div>';return;}
+  if(tab==='fuel'){
+    const total=data.reduce((a,r)=>a+(parseFloat(r.litros)||0),0);
+    cont.innerHTML=`<div style="text-align:center;padding:.5rem 0 1rem">
+      <div style="font-size:26px;font-weight:600">${Math.round(total)} L</div>
+      <div style="font-size:13px;color:var(--text2)">Total histórico</div>
+    </div>`+data.map(r=>`<div class="hist-item" id="item-${r.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1">
+          <div class="hist-date">${ff(r.fecha)}</div>
+          <div class="hist-desc">${r.litros} litros</div>
+          <div class="hist-meta">${r.desc}</div>
+        </div>
+        ${!MODO_LECTURA?`<button onclick="borrarRegistro('${r.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px;border-radius:4px" title="Eliminar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>`:''}
+      </div>
+    </div>`).join('');
+    return;
+  }
+  cont.innerHTML=data.map(r=>`<div class="hist-item" id="item-${r.id}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div style="flex:1;min-width:0">
+        <div class="hist-date">${ff(r.fecha)} · <span class="tipo-badge tipo-${r.tipo}">${r.tipo}</span></div>
+        <div class="hist-desc">${r.desc}</div>
+        <div class="hist-meta">${r.horometro?r.horometro+' hs':''} ${r.costo?'· $'+Number(r.costo).toLocaleString('es-AR'):''}</div>
+      </div>
+      ${!MODO_LECTURA?`<button onclick="borrarRegistro('${r.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px;border-radius:4px" title="Eliminar">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>`:''}
+    </div>
+  </div>`).join('');
+}
+
+async function borrarRegistro(id){
+  if(!confirm('¿Borrar este registro? Esta acción no se puede deshacer.'))return;
+  if(db){
+    try{
+      await db.ref('registros/'+id).remove();
+      showToast('Registro eliminado');
+    }catch(e){
+      registros=registros.filter(r=>r.id!==id);
+      guardarLocal();
+      renderAll();
+      showToast('Eliminado localmente');
+    }
+  }else{
+    registros=registros.filter(r=>r.id!==id);
+    guardarLocal();
+    renderAll();
+    showToast('Registro eliminado');
+  }
+}
+
+function formatPesos(n){return '$'+Math.round(n).toLocaleString('es-AR');}
+
+function renderCostosInicio(){
+  const mes=new Date().toISOString().split('T')[0].substring(0,7);
+  const regsConCosto=registros.filter(r=>r.costo&&parseFloat(r.costo)>0&&r.fecha&&r.fecha.startsWith(mes));
+  const cont=document.getElementById('costos-inicio');
+  if(!regsConCosto.length){
+    cont.innerHTML='<div class="empty" style="padding:0.75rem 0">Sin costos registrados este mes.</div>';
+    return;
+  }
+  // Agrupar por equipo
+  const porEquipo={};
+  regsConCosto.forEach(r=>{
+    if(!porEquipo[r.equipoId])porEquipo[r.equipoId]=0;
+    porEquipo[r.equipoId]+=parseFloat(r.costo);
+  });
+  const totalMes=Object.values(porEquipo).reduce((a,b)=>a+b,0);
+  // Top 3 equipos
+  const top=Object.entries(porEquipo).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <span style="font-size:13px;color:var(--text2)">Total mes</span>
+    <span style="font-size:16px;font-weight:600">${formatPesos(totalMes)}</span>
+  </div>`;
+  top.forEach(([eqId,monto])=>{
+    const eq=EQUIPOS.find(e=>e.id===eqId);
+    const pct=Math.round(monto/totalMes*100);
+    html+=`<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span style="color:var(--text)">${eq?eq.nombre:eqId}</span>
+        <span style="font-weight:500">${formatPesos(monto)}</span>
+      </div>
+      <div style="background:var(--bg3);border-radius:4px;height:6px">
+        <div style="background:#185FA5;height:100%;border-radius:4px;width:${pct}%"></div>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML=`<div class="card" style="padding:1rem">${html}</div>`;
+}
+
+function renderCostosEquipo(equipoId){
+  const cont=document.getElementById('dtab-costos');
+  if(!cont)return;
+  const regs=registros.filter(r=>r.equipoId===equipoId&&r.costo&&parseFloat(r.costo)>0);
+  if(!regs.length){cont.innerHTML='<div class="empty">Sin costos registrados para este equipo.</div>';return;}
+
+  const totalHist=regs.reduce((a,r)=>a+(parseFloat(r.costo)||0),0);
+  const mesActual=new Date().toISOString().split('T')[0].substring(0,7);
+  const totalMes=regs.filter(r=>r.fecha&&r.fecha.startsWith(mesActual)).reduce((a,r)=>a+(parseFloat(r.costo)||0),0);
+  const anioActual=new Date().getFullYear().toString();
+  const totalAnio=regs.filter(r=>r.fecha&&r.fecha.startsWith(anioActual)).reduce((a,r)=>a+(parseFloat(r.costo)||0),0);
+
+  // Por categoría
+  const porTipo={service:0,reparacion:0,combustible:0};
+  regs.forEach(r=>{if(porTipo[r.tipo]!==undefined)porTipo[r.tipo]+=parseFloat(r.costo)||0;});
+
+  let html=`<div class="stats-grid" style="margin-bottom:12px">
+    <div class="stat"><div class="stat-label">Este mes</div><div class="stat-val" style="font-size:16px">${formatPesos(totalMes)}</div></div>
+    <div class="stat"><div class="stat-label">Este año</div><div class="stat-val" style="font-size:16px">${formatPesos(totalAnio)}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px;padding:.85rem 1rem">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px">Por categoría (histórico)</div>`;
+
+  const cats=[['service','Service/Mant.','#185FA5'],['reparacion','Reparaciones','#A32D2D'],['combustible','Combustible','#854F0B']];
+  const maxCat=Math.max(...cats.map(([k])=>porTipo[k]||0),1);
+  cats.forEach(([key,label,color])=>{
+    const v=porTipo[key]||0;
+    if(!v)return;
+    const pct=Math.round(v/maxCat*100);
+    html+=`<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span style="color:var(--text2)">${label}</span>
+        <span style="font-weight:500">${formatPesos(v)}</span>
+      </div>
+      <div style="background:var(--bg3);border-radius:4px;height:6px">
+        <div style="background:${color};height:100%;border-radius:4px;width:${pct}%"></div>
+      </div>
+    </div>`;
+  });
+  html+=`<div style="border-top:0.5px solid var(--border);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between;font-size:13px">
+    <span style="color:var(--text2)">Total histórico</span>
+    <span style="font-weight:600">${formatPesos(totalHist)}</span>
+  </div></div>`;
+
+  html+=`<div class="section-title">Detalle de gastos</div>`;
+  html+=regs.map(r=>`<div class="hist-item">
+    <div class="hist-date">${ff(r.fecha)} · <span class="tipo-badge tipo-${r.tipo}">${r.tipo}</span></div>
+    <div class="hist-desc">${r.desc}</div>
+    <div class="hist-meta" style="font-weight:500;color:var(--text)">${formatPesos(parseFloat(r.costo))}</div>
+  </div>`).join('');
+
+  cont.innerHTML=html;
+}
+
+function esCamioneta(id){return !!EQUIPOS.find(e=>e.id===id&&e.tipo==='Camioneta');}
+
+function toggleConsEquipo(){
+  const id=document.getElementById('cons-equipo').value;
+  const cam=esCamioneta(id);
+  document.getElementById('label-horo-ini').textContent=cam?'Kilometraje inicial (km)':'Horómetro inicial (hs)';
+  document.getElementById('label-horo-fin').textContent=cam?'Kilometraje final (km)':'Horómetro final (hs)';
+  document.getElementById('cons-horo-ini').placeholder=cam?'ej: 45200':'ej: 1250';
+  document.getElementById('cons-horo-fin').placeholder=cam?'ej: 45350':'ej: 1258';
+  document.getElementById('campo-cons-impl').style.display=cam?'none':'block';
+  document.getElementById('cons-unidad-label').textContent=cam?'litros cada 100 km':'litros por hora';
+  document.getElementById('cons-resultado').style.display='none';
+  document.getElementById('btn-guardar-consumo').style.display='none';
+}
+
+function calcularConsumo(){
+  const id=document.getElementById('cons-equipo').value;
+  const cam=esCamioneta(id);
+  const horoIni=parseFloat(document.getElementById('cons-horo-ini').value);
+  const horoFin=parseFloat(document.getElementById('cons-horo-fin').value);
+  const litFin=parseFloat(document.getElementById('cons-lit-fin').value);
+  if(isNaN(horoIni)||isNaN(horoFin)||isNaN(litFin)){showToast(cam?'Completá kilometraje inicial, final y litros':'Completá horómetro inicial, final y litros');return;}
+  if(horoFin<=horoIni){showToast(cam?'El kilometraje final debe ser mayor al inicial':'El horómetro final debe ser mayor al inicial');return;}
+  if(litFin<=0){showToast('Los litros deben ser mayores a 0');return;}
+  const diff=horoFin-horoIni;
+  let resultado, detalle;
+  if(cam){
+    resultado=(litFin/diff*100).toFixed(2);
+    detalle=`${litFin} L en ${Math.round(diff)} km recorridos`;
+  }else{
+    resultado=(litFin/diff).toFixed(2);
+    detalle=`${litFin} L en ${diff.toFixed(1)} hs de trabajo`;
+  }
+  document.getElementById('cons-lxh').textContent=resultado;
+  document.getElementById('cons-unidad-label').textContent=cam?'litros cada 100 km':'litros por hora';
+  document.getElementById('cons-detalle').textContent=detalle;
+  document.getElementById('cons-resultado').style.display='block';
+  document.getElementById('btn-guardar-consumo').style.display='flex';
+}
+
+async function guardarConsumo(){
+  const equipoId=document.getElementById('cons-equipo').value;
+  const cam=esCamioneta(equipoId);
+  const impl=document.getElementById('cons-impl').value.trim();
+  const fechaIni=document.getElementById('cons-fecha-ini').value;
+  const fechaFin=document.getElementById('cons-fecha-fin').value;
+  const horoIni=parseFloat(document.getElementById('cons-horo-ini').value);
+  const horoFin=parseFloat(document.getElementById('cons-horo-fin').value);
+  const litIni=parseFloat(document.getElementById('cons-lit-ini').value)||0;
+  const litFin=parseFloat(document.getElementById('cons-lit-fin').value);
+  const diff=horoFin-horoIni;
+  const resultado=cam ? parseFloat((litFin/diff*100).toFixed(2)) : parseFloat((litFin/diff).toFixed(2));
+  const unidad=cam?'L/100km':'L/h';
+
+  const reg={
+    id:'r'+Date.now(),
+    timestamp:Date.now(),
+    tipo:'medicion-consumo',
+    equipoId,
+    fecha:fechaFin||fechaIni,
+    desc:`Medición ${cam?'ruta':'labor'} ${impl?'con '+impl:''} — ${resultado} ${unidad}`,
+    horoIni,horoFin,litIni,litFin,
+    diff:parseFloat(diff.toFixed(1)),
+    lxh:resultado,
+    unidad,
+    esCamioneta:cam,
+    implemento:impl,
+  };
+
+  const btn=document.getElementById('btn-guardar-consumo');
+  btn.disabled=true;btn.innerHTML='Guardando...';
+  if(db){
+    try{await db.ref('registros/'+reg.id).set(reg);showToast('Medición guardada');}
+    catch(e){registros=[reg,...registros];guardarLocal();renderAll();showToast('Guardado localmente');}
+  }else{registros=[reg,...registros];guardarLocal();renderAll();showToast('Medición guardada');}
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Guardar medición';
+  document.getElementById('cons-resultado').style.display='none';
+  btn.style.display='none';
+  ['cons-horo-ini','cons-horo-fin','cons-lit-ini','cons-lit-fin','cons-impl'].forEach(id=>document.getElementById(id).value='');
+  renderConsumoHistorial();
+}
+
+function renderConsumoHistorial(){
+  const cont=document.getElementById('cons-historial');
+  const meds=registros.filter(r=>r.tipo==='medicion-consumo');
+  if(!meds.length){cont.innerHTML='<div class="empty">Sin mediciones aún.<br>Hacé tu primera medición arriba.</div>';return;}
+
+  // Promedios por tractor
+  const porTractor={};
+  meds.forEach(r=>{
+    if(!porTractor[r.equipoId])porTractor[r.equipoId]=[];
+    porTractor[r.equipoId].push(r.lxh);
+  });
+
+  let html='<div style="margin-bottom:12px">';
+  Object.entries(porTractor).forEach(([eqId,vals])=>{
+    const eq=EQUIPOS.find(e=>e.id===eqId);
+    const prom=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);
+    const unidad=meds.find(r=>r.equipoId===eqId)?.unidad||'L/h';
+    html+=`<div class="eq-card" style="cursor:default;margin-bottom:6px">
+      <div><div class="eq-name" style="font-size:14px">${eq?eq.nombre:'—'}</div>
+      <div class="eq-sub">Promedio: ${prom} ${unidad} · ${vals.length} medición${vals.length>1?'es':''}</div></div>
+      <span class="badge badge-info">${prom} ${unidad}</span>
+    </div>`;
+  });
+  html+='</div>';
+
+  html+=meds.map(r=>{
+    const eq=EQUIPOS.find(e=>e.id===r.equipoId);
+    return `<div class="hist-item" id="item-${r.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1">
+          <div class="hist-date">${ff(r.fecha)}</div>
+          <div class="hist-desc">${eq?eq.nombre:'—'} · <strong>${r.lxh} ${r.unidad||'L/h'}</strong></div>
+          <div class="hist-meta">${r.implemento||''} · ${r.diff||r.horas} ${r.esCamioneta?'km':'hs'} · ${r.litFin} L</div>
+        </div>
+        ${!MODO_LECTURA?`<button onclick="borrarRegistro('${r.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px" title="Eliminar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  cont.innerHTML=html;
+}
+
+function calcularEstadoService(equipoId){
+  const eq=EQUIPOS.find(e=>e.id===equipoId);
+  const cfg=configs[equipoId]||{};
+  const esCam=eq&&eq.tipo==='Camioneta';
+  const intervalo=esCam?10000:(cfg.intervaloService||null);
+  if(!intervalo)return null;
+
+  let hsUltimo=null;
+  let hsActual=null;
+
+  if(esCam){
+    // Para camionetas usar config de km
+    const kmUltimo=cfg.kmUltimoService||null;
+    // Buscar último service con horometro (km)
+    const services=registros.filter(r=>r.tipo==='service'&&r.equipoId===equipoId&&r.horometro);
+    if(services.length) hsUltimo=parseFloat(services[0].horometro);
+    else if(kmUltimo) hsUltimo=kmUltimo;
+    else return null;
+    // km actual: de config o del registro más reciente
+    const conHoro=registros.filter(r=>r.equipoId===equipoId&&r.horometro);
+    hsActual=conHoro.length?parseFloat(conHoro[0].horometro):(cfg.kmActual||hsUltimo);
+  }else{
+    const services=registros.filter(r=>r.tipo==='service'&&r.equipoId===equipoId&&r.horometro);
+    if(!services.length)return null;
+    hsUltimo=parseFloat(services[0].horometro);
+    const conHoro=registros.filter(r=>r.equipoId===equipoId&&r.horometro);
+    hsActual=conHoro.length?parseFloat(conHoro[0].horometro):hsUltimo;
+  }
+
+  const transcurrido=hsActual-hsUltimo;
+  const restante=intervalo-transcurrido;
+  const pct=transcurrido/intervalo;
+  const unidad=esCam?'km':'hs';
+  const avisoAntes=cfg.avisoAntes||20;
+
+  let estado='verde';
+  if(pct>=1) estado='rojo';
+  else if(esCam?(restante<=1000):(restante<=avisoAntes)) estado='amarillo';
+
+  return{estado,transcurrido:Math.round(transcurrido),restante:Math.round(restante),intervalo,unidad,fechaUltimo:null};
+}
+
+function renderAlertasService(){
+  const cont=document.getElementById('alertas-service');
+  const title=document.getElementById('title-alertas-service');
+  if(!cont)return;
+  const equipos=EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta');
+  const alertas=equipos.map(e=>({eq:e,estado:calcularEstadoService(e.id)})).filter(x=>x.estado&&x.estado.estado!=='verde');
+
+  if(!alertas.length){
+    cont.innerHTML='<div class="empty" style="padding:0.5rem 0">Todo en orden — sin alertas pendientes.</div>';
+    return;
+  }
+
+  cont.innerHTML=alertas.map(({eq,estado})=>{
+    const color=estado.estado==='rojo'?'var(--red)':'var(--amber)';
+    const bg=estado.estado==='rojo'?'var(--red-bg)':'var(--amber-bg)';
+    const msg=estado.estado==='rojo'
+      ?`Service vencido — ${estado.transcurrido} ${estado.unidad} desde el último`
+      :`Faltan ${estado.restante} ${estado.unidad} para el próximo service`;
+    return `<div style="background:${bg};border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="verDetalle('${eq.id}')">
+      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+      <div>
+        <div style="font-size:14px;font-weight:500;color:var(--text)">${eq.nombre}</div>
+        <div style="font-size:12px;color:var(--text2)">${msg}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSemaforoEquipo(equipoId){
+  const estado=calcularEstadoService(equipoId);
+  const sem=document.getElementById('det-semaforo');
+  const txt=document.getElementById('det-alerta-texto');
+  if(!sem)return;
+  if(!estado){sem.style.background='var(--border)';txt.style.display='none';return;}
+  const colores={verde:'#639922',amarillo:'#EF9F27',rojo:'#E24B4A'};
+  sem.style.background=colores[estado.estado];
+  const msg=estado.estado==='rojo'
+    ?`Service vencido — ${estado.transcurrido} ${estado.unidad} desde el último (cada ${estado.intervalo} ${estado.unidad})`
+    :estado.estado==='amarillo'
+    ?`Faltan ${estado.restante} ${estado.unidad} para el próximo service`
+    :`Service al día — ${estado.restante} ${estado.unidad} restantes`;
+  txt.textContent=msg;
+  txt.style.display='block';
+  txt.style.color=colores[estado.estado];
+}
+
+function renderConfigEquipo(equipoId){
+  const cont=document.getElementById('dtab-config');
+  if(!cont)return;
+  const eq=EQUIPOS.find(e=>e.id===equipoId);
+  const cfg=configs[equipoId]||{};
+  const esCam=eq&&eq.tipo==='Camioneta';
+  const unidad=esCam?'km':'hs';
+
+  cont.innerHTML=`
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:14px;font-weight:500;margin-bottom:12px">Configuración de service</div>
+      <div class="form-group">
+        <label class="form-label">Intervalo de service (${unidad})</label>
+        <input type="number" id="cfg-intervalo" value="${esCam?10000:(cfg.intervaloService||'')}" placeholder="${esCam?'ej: 10000':'ej: 250'}">
+      </div>
+      ${esCam?`
+      <div class="form-group">
+        <label class="form-label">Km del último service</label>
+        <input type="number" id="cfg-km-ultimo" value="${cfg.kmUltimoService||''}" placeholder="ej: 42000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Km actuales del vehículo</label>
+        <input type="number" id="cfg-km-actual" value="${cfg.kmActual||''}" placeholder="ej: 45200">
+      </div>
+      `:`
+      <div class="form-group">
+        <label class="form-label">Aviso anticipado (hs antes)</label>
+        <input type="number" id="cfg-aviso" value="${cfg.avisoAntes||20}" placeholder="ej: 20">
+      </div>
+      `}
+      <button class="btn btn-primary" onclick="guardarConfigEquipo('${equipoId}')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar configuración
+      </button>
+    </div>`;
+}
+
+async function guardarConfigEquipo(equipoId){
+  const eq=EQUIPOS.find(e=>e.id===equipoId);
+  const esCam=eq&&eq.tipo==='Camioneta';
+  const intervalo=parseFloat(document.getElementById('cfg-intervalo').value)||null;
+  if(!intervalo){showToast('Ingresá el intervalo de service');return;}
+  const cfg={intervaloService:intervalo};
+  if(esCam){
+    const kmUltimo=parseFloat(document.getElementById('cfg-km-ultimo').value)||null;
+    const kmActual=parseFloat(document.getElementById('cfg-km-actual').value)||null;
+    if(kmUltimo)cfg.kmUltimoService=kmUltimo;
+    if(kmActual)cfg.kmActual=kmActual;
+  }else{
+    const aviso=parseFloat(document.getElementById('cfg-aviso').value)||20;
+    cfg.avisoAntes=aviso;
+  }
+  if(db){
+    try{
+      await db.ref('configs/'+equipoId).update(cfg);
+      showToast('Configuración guardada');
+    }catch(e){showToast('Error al guardar');}
+  }else{
+    configs[equipoId]={...(configs[equipoId]||{}),...cfg};
+    renderAlertasService();
+    renderSemaforoEquipo(equipoId);
+    showToast('Guardado localmente');
+  }
+}
+
+function calcularCisterna(){
+  const CAP=5000;
+  let stock=0;
+  registros.slice().reverse().forEach(r=>{
+    if(r.tipo==='recarga-cisterna') stock+=parseFloat(r.litros)||0;
+    else if(r.tipo==='combustible'&&r.origen==='cisterna') stock-=parseFloat(r.litros)||0;
+  });
+  stock=Math.max(0,Math.round(stock));
+  const pct=Math.min(100,Math.round(stock/CAP*100));
+  const badge=document.getElementById('cisterna-badge');
+  const barra=document.getElementById('cisterna-barra');
+  const pctEl=document.getElementById('cisterna-pct');
+  if(!badge)return;
+  badge.textContent=stock+' L';
+  badge.className='badge '+(pct>40?'badge-ok':pct>15?'badge-warn':'badge badge-alert');
+  barra.style.width=pct+'%';
+  barra.style.background=pct>40?'#3B6D11':pct>15?'#EF9F27':'#E24B4A';
+  pctEl.textContent=pct+'%';
+}
+
+
+let chartTractores=null;
+
+function poblarFiltrosCombustible(){
+  const cargas=registros.filter(r=>r.tipo==='combustible');
+  const anios=[...new Set(cargas.map(r=>r.fecha&&r.fecha.substring(0,4)).filter(Boolean))].sort().reverse();
+  const anioActual=new Date().getFullYear().toString();
+  if(!anios.includes(anioActual))anios.unshift(anioActual);
+  const selAnio=document.getElementById('fuel-anio');
+  const valAnio=selAnio.value||anioActual;
+  selAnio.innerHTML=anios.map(a=>`<option value="${a}"${a===valAnio?' selected':''}>${a}</option>`).join('');
+
+  const tractores=EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta');
+  const selTract=document.getElementById('fuel-filtro-tractor');
+  const valTract=selTract.value||'todos';
+  selTract.innerHTML='<option value="todos">Todos</option>'+tractores.map(e=>`<option value="${e.id}"${e.id===valTract?' selected':''}>${e.nombre}</option>`).join('');
+}
+
+function renderCombustible(){
+  poblarFiltrosCombustible();
+  const cargas=registros.filter(r=>r.tipo==='combustible');
+  const mesActual=new Date().toISOString().split('T')[0].substring(0,7);
+  const anio=document.getElementById('fuel-anio').value||new Date().getFullYear().toString();
+  const filtroTractor=document.getElementById('fuel-filtro-tractor').value||'todos';
+
+  const totalMes=cargas.filter(r=>r.fecha&&r.fecha.startsWith(mesActual)).reduce((a,r)=>a+(parseFloat(r.litros)||0),0);
+  const totalHist=cargas.reduce((a,r)=>a+(parseFloat(r.litros)||0),0);
+  document.getElementById('fuel-total-mes').textContent=Math.round(totalMes)+' L';
+  document.getElementById('fuel-total-hist').textContent=Math.round(totalHist)+' L';
+
+  // Gráfico mensual
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const cargasFiltradas=filtroTractor==='todos'?cargas:cargas.filter(r=>r.equipoId===filtroTractor);
+  const datosMes=meses.map((_,i)=>{
+    const m=String(i+1).padStart(2,'0');
+    return cargasFiltradas.filter(r=>r.fecha&&r.fecha.startsWith(`${anio}-${m}`)).reduce((a,r)=>a+(parseFloat(r.litros)||0),0);
+  });
+
+  const isDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const textColor=isDark?'#aaa':'#666';
+  const gridColor=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  const barColor=isDark?'rgba(55,138,221,0.7)':'rgba(24,95,165,0.75)';
+
+  if(chartMensual)chartMensual.destroy();
+  const ctxM=document.getElementById('chart-mensual').getContext('2d');
+  chartMensual=new Chart(ctxM,{
+    type:'bar',
+    data:{
+      labels:meses,
+      datasets:[{label:'Litros',data:datosMes,backgroundColor:barColor,borderRadius:4,borderSkipped:false}]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Math.round(ctx.raw)} L`}}},
+      scales:{
+        x:{ticks:{color:textColor,font:{size:11}},grid:{display:false}},
+        y:{ticks:{color:textColor,font:{size:11},callback:v=>v+' L'},grid:{color:gridColor},beginAtZero:true}
+      }
+    }
+  });
+
+  // Gráfico por tractor
+  const tractores=EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta'||e.id==='otro');
+  const datosTract=tractores.map(e=>Math.round(cargas.filter(r=>r.equipoId===e.id).reduce((a,r)=>a+(parseFloat(r.litros)||0),0)));
+  const colores=['rgba(24,95,165,0.75)','rgba(15,110,86,0.75)','rgba(186,117,23,0.75)','rgba(153,60,29,0.75)','rgba(83,74,183,0.75)','rgba(99,153,34,0.75)'];
+
+  if(chartTractores)chartTractores.destroy();
+  const ctxT=document.getElementById('chart-tractores').getContext('2d');
+  chartTractores=new Chart(ctxT,{
+    type:'bar',
+    data:{
+      labels:tractores.map(e=>e.nombre.replace('New Holland ','NH ').replace('Massey Ferguson ','MF ')),
+      datasets:[{label:'Litros',data:datosTract,backgroundColor:colores,borderRadius:4,borderSkipped:false}]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Math.round(ctx.raw)} L`}}},
+      scales:{
+        x:{ticks:{color:textColor,font:{size:11},callback:v=>v+' L'},grid:{color:gridColor},beginAtZero:true},
+        y:{ticks:{color:textColor,font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+
+  // Historial
+  const fh=document.getElementById('fuel-historial');
+  if(!cargas.length){fh.innerHTML='<div class="empty">Sin cargas registradas aún.<br>Usá "Registrar" → Carga de combustible.</div>';return;}
+  fh.innerHTML=cargas.map(r=>{
+    const eq=EQUIPOS.find(e=>e.id===r.equipoId);
+    const origenLabel=r.origen==='cisterna'?'🛢 Cisterna':r.origen==='bidon'?'🪣 Bidón/Tacho':r.origen==='estacion'?'⛽ Estación':'—';
+    return `<div class="hist-item">
+      <div class="hist-date">${ff(r.fecha)} · <span style="font-size:11px;color:var(--text2)">${origenLabel}</span></div>
+      <div class="hist-desc">${eq?eq.nombre:'—'} · <strong>${r.litros} L</strong></div>
+      <div class="hist-meta">${r.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderQR(){
+  const id=document.getElementById('qr-equipo').value;
+  const eq=EQUIPOS.find(e=>e.id===id);
+  if(!eq)return;
+  document.getElementById('qr-label').textContent=eq.nombre;
+  const url=appUrl+'?equipo='+id;
+  document.getElementById('qr-url').textContent=url;
+  const encoded=encodeURIComponent(url);
+  const img=document.getElementById('qr-img');
+  img.src=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encoded}&margin=10`;
+  img.alt='QR '+eq.nombre;
+}
+
+function abrirQRNuevaPestana(){
+  const id=document.getElementById('qr-equipo').value;
+  const url=appUrl+'?equipo='+id;
+  const encoded=encodeURIComponent(url);
+  window.open(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encoded}&margin=20`,'_blank');
+}
+
+function copiarLink(){
+  const id=document.getElementById('qr-equipo').value;
+  const url=appUrl+'?equipo='+id;
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(()=>showToast('Enlace copiado'));}
+  else{prompt('Copiá este enlace:',url);}
+}
+
+async function borrarRegistro(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  if(db){
+    try{
+      await db.ref('registros/'+id).remove();
+      showToast('Registro eliminado');
+    }catch(e){
+      registros=registros.filter(r=>r.id!==id);
+      guardarLocal();renderAll();
+      showToast('Eliminado localmente');
+    }
+  }else{
+    registros=registros.filter(r=>r.id!==id);
+    guardarLocal();renderAll();
+    showToast('Registro eliminado');
+  }
+}
+
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  // Manejar sec-exportar que está fuera del app div
+  const secExp=document.getElementById('sec-exportar');
+  if(id==='exportar'){
+    if(secExp){secExp.style.display='block';}
+    document.getElementById('app-principal').style.display='none';
+    poblarSelectExportar();
+    return;
+  }else{
+    if(secExp)secExp.style.display='none';
+    document.getElementById('app-principal').style.display='flex';
+  }
+  document.getElementById('sec-'+id).classList.add('active');
+  if(btn){document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  if(id==='qr')renderQR();
+}
+
+function switchDTab(btn,tabId){
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.dtab-content').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function toggleTipo(){
+  const t=document.getElementById('reg-tipo').value;
+  const esComb=t==='combustible';
+  const esRecarga=t==='recarga-cisterna';
+  document.getElementById('campo-litros').style.display=(esComb||esRecarga)?'block':'none';
+  document.getElementById('campo-horometro').style.display=esComb?'block':'none';
+  document.getElementById('campo-costo').style.display=(esComb||esRecarga)?'block':'none';
+  document.getElementById('campo-equipo').style.display=esRecarga?'none':'block';
+  document.getElementById('campo-origen').style.display=esComb?'block':'none';
+  if(esRecarga){
+    document.getElementById('reg-litros').placeholder='ej: 5000';
+    document.getElementById('campo-litros').querySelector('.form-label').textContent='Litros comprados';
+  } else {
+    document.getElementById('reg-litros').placeholder='ej: 80';
+    document.getElementById('campo-litros').querySelector('.form-label').textContent='Litros cargados';
+  }
+  toggleOtro();
+}
+
+function toggleOtro(){
+  const eq=document.getElementById('reg-equipo').value;
+  document.getElementById('campo-otro').style.display=eq==='otro'?'block':'none';
+}
+
+function toggleHorometroLabel(){
+  const id=document.getElementById('reg-equipo').value;
+  const cam=esCamioneta(id);
+  const label=document.getElementById('label-reg-horometro');
+  const input=document.getElementById('reg-horometro');
+  if(!label)return;
+  label.textContent=cam?'Kilometraje actual (km)':'Horómetro (hs)';
+  input.placeholder=cam?'ej: 45200':'ej: 1250';
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>t.style.display='none',2500);
+}
+
+function ff(f){if(!f)return '';const[y,m,d]=f.split('-');return`${d}/${m}/${y}`;}
+
+function poblarSelects(){
+  ['reg-equipo','qr-equipo'].forEach(sid=>{
+    const sel=document.getElementById(sid);sel.innerHTML='';
+    EQUIPOS.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.nombre;sel.appendChild(o);});
+  });
+  const selCons=document.getElementById('cons-equipo');
+  const selLab=document.getElementById('lab-equipo');
+  const selRepAsoc=document.getElementById('rep-equipo-asoc');
+  [selCons,selLab].forEach(sel=>{
+    sel.innerHTML='';
+    EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta').forEach(e=>{
+      const o=document.createElement('option');o.value=e.id;o.textContent=e.nombre;sel.appendChild(o);
+    });
+  });
+  selRepAsoc.innerHTML='<option value="">— General / cualquier equipo —</option>';
+  EQUIPOS.filter(e=>e.tipo==='Tractor'||e.tipo==='Camioneta').forEach(e=>{
+    const o=document.createElement('option');o.value=e.id;o.textContent=e.nombre;selRepAsoc.appendChild(o);
+  });
+}
+
+// Modo solo lectura cuando se abre desde QR (?equipo=xxx)
+const QR_PARAM=new URLSearchParams(window.location.search).get('equipo');
+const MODO_LECTURA=!!(QR_PARAM&&EQUIPOS.find(e=>e.id===QR_PARAM));
+
+function activarModoLectura(){
+  document.querySelector('.nav').style.display='none';
+  document.querySelector('.header h1').innerHTML=`
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 4h1a2 2 0 0 1 2 2v3h-2"/></svg>
+    Historial`;
+  const banner=document.createElement('div');
+  banner.style.cssText='background:var(--amber-bg);color:var(--amber);font-size:12px;text-align:center;padding:6px;border-bottom:0.5px solid var(--border)';
+  banner.textContent='Modo lectura — solo visualización';
+  document.querySelector('.app').insertBefore(banner,document.querySelector('.content'));
+  // Ocultar pestaña costos
+  const btnCostos=document.getElementById('dtab-btn-costos');
+  if(btnCostos)btnCostos.style.display='none';
+  // Ocultar sección costos en inicio
+  const costoInicio=document.getElementById('costos-inicio');
+  if(costoInicio)costoInicio.closest('.section-title') && (costoInicio.previousElementSibling.style.display='none');
+  if(costoInicio)costoInicio.style.display='none';
+}
+
+function checkQRParam(){
+  if(MODO_LECTURA){
+    activarModoLectura();
+    verDetalle(QR_PARAM);
+    // En detalle, ocultar botón de volver (no hay a dónde ir)
+    setTimeout(()=>{
+      const back=document.querySelector('.back-btn');
+      if(back)back.style.display='none';
+    },100);
+  }
+}
+
+document.getElementById('reg-fecha').value=new Date().toISOString().split('T')[0];
+poblarSelects();
+initFirebase();
+checkQRParam();
+</script>
+</body>
+</html>
