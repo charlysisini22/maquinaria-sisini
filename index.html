@@ -1082,7 +1082,7 @@ function renderAlertasVencimientos(){
   }).join('');
 }
 
-
+function getExpFiltros(){
   const desde=document.getElementById('exp-desde')?.value||null;
   const hasta=document.getElementById('exp-hasta')?.value||null;
   return{desde,hasta};
