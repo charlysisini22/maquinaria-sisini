@@ -2301,20 +2301,6 @@ function toggleTipo(){
   toggleOtro();
   toggleHorometroLabel();
 }
-  document.getElementById('campo-litros').style.display=(esComb||esRecarga)?'block':'none';
-  document.getElementById('campo-horometro').style.display=esComb?'block':'none';
-  document.getElementById('campo-costo').style.display=(esComb||esRecarga)?'block':'none';
-  document.getElementById('campo-equipo').style.display=esRecarga?'none':'block';
-  document.getElementById('campo-origen').style.display=esComb?'block':'none';
-  if(esRecarga){
-    document.getElementById('reg-litros').placeholder='ej: 5000';
-    document.getElementById('campo-litros').querySelector('.form-label').textContent='Litros comprados';
-  } else {
-    document.getElementById('reg-litros').placeholder='ej: 80';
-    document.getElementById('campo-litros').querySelector('.form-label').textContent='Litros cargados';
-  }
-  toggleOtro();
-}
 
 function toggleOtro(){
   const eq=document.getElementById('reg-equipo').value;
