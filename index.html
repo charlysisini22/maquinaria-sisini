@@ -231,7 +231,7 @@ textarea{resize:vertical;min-height:80px}
         <button class="dtab" onclick="switchDTab(this,'dtab-service')">Service</button>
         <button class="dtab" onclick="switchDTab(this,'dtab-fuel')">Combustible</button>
         <button class="dtab" id="dtab-btn-costos" onclick="switchDTab(this,'dtab-costos')">Costos</button>
-        <button class="dtab" onclick="switchDTab(this,'dtab-config')">Config.</button>
+        <button class="dtab" id="dtab-btn-config" onclick="switchDTab(this,'dtab-config')">Config.</button>
       </div>
       <div class="dtab-content active" id="dtab-hist"></div>
       <div class="dtab-content" id="dtab-service"></div>
@@ -2361,9 +2361,12 @@ function activarModoLectura(){
   // Ocultar pestaña costos
   const btnCostos=document.getElementById('dtab-btn-costos');
   if(btnCostos)btnCostos.style.display='none';
+  // Ocultar pestaña config
+  const btnConfig=document.getElementById('dtab-btn-config');
+  if(btnConfig)btnConfig.style.display='none';
   // Ocultar sección costos en inicio
   const costoInicio=document.getElementById('costos-inicio');
-  if(costoInicio)costoInicio.closest('.section-title') && (costoInicio.previousElementSibling.style.display='none');
+  if(costoInicio)costoInicio.previousElementSibling&&(costoInicio.previousElementSibling.style.display='none');
   if(costoInicio)costoInicio.style.display='none';
 }
 
