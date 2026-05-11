@@ -265,6 +265,14 @@ textarea{resize:vertical;min-height:80px}
             <option value="estacion">Estación de servicio</option>
           </select>
         </div>
+        <div id="campo-resp" class="form-group" style="display:none">
+          <label class="form-label">Responsable</label>
+          <select id="reg-resp">
+            <option value="CARLOS">CARLOS</option>
+            <option value="FERNANDO">FERNANDO</option>
+            <option value="ALBERTO">ALBERTO</option>
+          </select>
+        </div>
         <div class="form-group">
           <label class="form-label">Fecha</label>
           <input type="date" id="reg-fecha">
@@ -1552,6 +1560,7 @@ async function guardarRegistro(){
     litros:document.getElementById('reg-litros').value||null,
     costo:document.getElementById('reg-costo').value||null,
     metodo:tipo==='combustible'?document.getElementById('reg-metodo').value:null,
+    resp:tipo==='combustible'?document.getElementById('reg-resp').value:null,
   };
 
   const btn=document.getElementById('btn-save');
@@ -1579,6 +1588,7 @@ async function guardarRegistro(){
   document.getElementById('reg-costo').value='';
   document.getElementById('reg-otro-desc').value='';
   document.getElementById('reg-metodo').selectedIndex=0;
+  document.getElementById('reg-resp').selectedIndex=0;
   document.getElementById('campo-otro').style.display='none';
   showSection('inicio',document.querySelector('.nav button'));
 }
@@ -2305,6 +2315,7 @@ function toggleTipo(){
   document.getElementById('campo-horometro').style.display=(esComb||esRecarga)?'none':'block';
   document.getElementById('campo-costo').style.display=esRecarga?'none':'block';
   document.getElementById('campo-metodo').style.display=(esComb&&!esRecarga)?'block':'none';
+  document.getElementById('campo-resp').style.display=esComb?'block':'none';
   document.getElementById('campo-equipo').style.display=esRecarga?'none':'block';
   document.getElementById('campo-origen').style.display=esComb?'block':'none';
   if(esRecarga){
