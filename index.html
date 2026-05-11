@@ -289,6 +289,19 @@ textarea{resize:vertical;min-height:80px}
           <label class="form-label">Costo ($)</label>
           <input type="number" id="reg-costo" placeholder="ej: 50000">
         </div>
+        <div id="campo-metodo" class="form-group" style="display:none">
+          <label class="form-label">Método de pago</label>
+          <select id="reg-metodo">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Mercado Pago">Mercado Pago</option>
+            <option value="Cuenta corriente">Cuenta corriente</option>
+            <option value="CC SAN VICENTE">CC SAN VICENTE</option>
+            <option value="CC MACRO">CC MACRO</option>
+            <option value="cheque">Cheque</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
         <button class="btn btn-primary" id="btn-save" onclick="guardarRegistro()">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           Guardar en la nube
@@ -1538,6 +1551,7 @@ async function guardarRegistro(){
     horometro:document.getElementById('reg-horometro').value||null,
     litros:document.getElementById('reg-litros').value||null,
     costo:document.getElementById('reg-costo').value||null,
+    metodo:tipo==='combustible'?document.getElementById('reg-metodo').value:null,
   };
 
   const btn=document.getElementById('btn-save');
@@ -1564,6 +1578,7 @@ async function guardarRegistro(){
   document.getElementById('reg-litros').value='';
   document.getElementById('reg-costo').value='';
   document.getElementById('reg-otro-desc').value='';
+  document.getElementById('reg-metodo').selectedIndex=0;
   document.getElementById('campo-otro').style.display='none';
   showSection('inicio',document.querySelector('.nav button'));
 }
@@ -2289,6 +2304,7 @@ function toggleTipo(){
   document.getElementById('campo-litros').style.display=(esComb||esRecarga)?'block':'none';
   document.getElementById('campo-horometro').style.display=(esComb||esRecarga)?'none':'block';
   document.getElementById('campo-costo').style.display=esRecarga?'none':'block';
+  document.getElementById('campo-metodo').style.display=(esComb&&!esRecarga)?'block':'none';
   document.getElementById('campo-equipo').style.display=esRecarga?'none':'block';
   document.getElementById('campo-origen').style.display=esComb?'block':'none';
   if(esRecarga){
